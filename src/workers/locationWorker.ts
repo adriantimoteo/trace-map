@@ -154,17 +154,16 @@ export function runPipeline(
 
   const stage1Input: DedupPoint[] = []
   let totalParsed = 0
-  let hasLocationsKey = false
+  let rawLocationsFound = 0
   let parseError: string | null = null
 
-  parser.onValue = ({ value, key, stack }) => {
+  parser.onValue = ({ value, key: _key, stack }) => {
     if (token.cancelled) return
 
-    // Detect the 'locations' key at depth 1 to confirm a valid file.
-    // stack.length === 0 at depth 1 (direct property of root object).
-    if (typeof key === 'string' && key === 'locations' && stack.length === 0) {
-      hasLocationsKey = true
-    }
+    // Track raw items received from the locations path filter.
+    // With paths: ['$.locations.*'], onValue fires only for array elements,
+    // so stack.length === 1 means we are at the element level.
+    if (stack.length === 1) rawLocationsFound++
 
     // We only care about individual location objects (depth 2: root.locations[i])
     // stack.length === 1 means we are at the array element level
@@ -246,8 +245,7 @@ export function runPipeline(
 
   if (token.cancelled) return
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!hasLocationsKey) {
+  if (rawLocationsFound === 0) {
     emit({ type: 'ERROR', payload: { message: 'No locations array found in file' } })
     return
   }
