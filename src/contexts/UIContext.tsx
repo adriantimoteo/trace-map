@@ -20,9 +20,18 @@ const initialState: UIState = {
   samplingNoticeDismissed: false,
 }
 
-// 4. Reducer (stubs — returns unchanged state for all actions)
-function uiReducer(state: UIState, _action: UIAction): UIState {
-  return state
+// 4. Reducer
+function uiReducer(state: UIState, action: UIAction): UIState {
+  switch (action.type) {
+    case 'SET_SCREEN':
+      return { ...state, screen: action.payload }
+    case 'TOGGLE_ADVANCED_OPTIONS':
+      return { ...state, advancedOptionsOpen: !state.advancedOptionsOpen }
+    case 'DISMISS_SAMPLING_NOTICE':
+      return { ...state, samplingNoticeDismissed: true }
+    default:
+      return state
+  }
 }
 
 // 5. Contexts — separate state and dispatch for better performance
