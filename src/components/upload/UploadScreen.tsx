@@ -1,12 +1,12 @@
-import { useUIDispatch } from '../../contexts/UIContext'
+import { useDataState } from '../../contexts/DataContext'
+import { useLocationWorker } from '../../hooks/useLocationWorker'
 import { DropZone } from './DropZone'
 import { ErrorMessage } from './ErrorMessage'
 import { PrivacyNotice } from './PrivacyNotice'
 
 export function UploadScreen() {
-  const dispatch = useUIDispatch()
-
-  const errorMessage: string | null = null
+  const { errorMessage } = useDataState()
+  const { loadFile } = useLocationWorker()
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
@@ -15,22 +15,9 @@ export function UploadScreen() {
 
         <PrivacyNotice />
 
-        <DropZone accept="application/json" />
+        <DropZone onFile={loadFile} />
 
         <ErrorMessage message={errorMessage} />
-
-        {/* Temporary P0-only navigation button — will be removed in Phase 1 */}
-        <div className="flex justify-center">
-          <button
-            type="button"
-            className="text-sm text-gray-500 underline hover:text-gray-300 transition-colors"
-            onClick={() => {
-              dispatch({ type: 'SET_SCREEN', payload: 'app' })
-            }}
-          >
-            Skip to app →
-          </button>
-        </div>
       </div>
     </div>
   )
