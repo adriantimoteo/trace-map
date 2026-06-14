@@ -155,7 +155,7 @@ describe('output structure', () => {
   // Dynamically import and invoke the generation logic.
   // We inline a minimal generation here to avoid running the CLI entry point.
 
-  it('generates entries with all required fields', async () => {
+  it('generates entries with all required fields', () => {
     // Re-use exported functions to build a minimal output
     const rng = mulberry32(42)
     const { lat, lng } = gaussianPoint(41.8781, -87.6298, 75, rng)
