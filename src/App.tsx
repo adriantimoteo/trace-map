@@ -4,6 +4,7 @@ import { FilterProvider } from './contexts/FilterContext'
 import { UIProvider } from './contexts/UIContext'
 import { useUIState } from './contexts/UIContext'
 import { UploadScreen } from './components/upload/UploadScreen'
+import { AppLayout } from './components/layout/AppLayout'
 
 function AppContent() {
   const { screen } = useUIState()
@@ -12,12 +13,7 @@ function AppContent() {
     return <UploadScreen />
   }
 
-  // P0-05 will replace this placeholder with the real app screen
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
-      <p className="text-gray-400">App screen — coming in P0-05</p>
-    </div>
-  )
+  return <AppLayout />
 }
 
 function App() {
