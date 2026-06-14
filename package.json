@@ -13,7 +13,8 @@
     "generate-data": "ts-node --project tsconfig.scripts.json scripts/generate-data.ts",
     "type-check": "tsc --noEmit",
     "format:check": "prettier --check src",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "audit:deps": "bash scripts/audit-deps.sh"
   },
   "dependencies": {
     "react": "^18.3.1",
