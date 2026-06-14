@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from 'react'
 import type { LocationPoint } from '../types'
 
 // 1. State type
@@ -43,20 +43,33 @@ function dataReducer(state: DataState, _action: DataAction): DataState {
   return state
 }
 
-// 5. Context
+// 5. Contexts — separate state and dispatch for better performance
 const DataStateContext = createContext<DataState | undefined>(undefined)
+const DataDispatchContext = createContext<Dispatch<DataAction> | undefined>(undefined)
 
 // 6. Provider component
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [state] = useReducer(dataReducer, initialState)
-  return <DataStateContext.Provider value={state}>{children}</DataStateContext.Provider>
+  const [state, dispatch] = useReducer(dataReducer, initialState)
+  return (
+    <DataStateContext.Provider value={state}>
+      <DataDispatchContext.Provider value={dispatch}>{children}</DataDispatchContext.Provider>
+    </DataStateContext.Provider>
+  )
 }
 
-// 7. Custom hook that throws if used outside provider
+// 7. Custom hooks that throw if used outside provider
 export function useDataState(): DataState {
   const ctx = useContext(DataStateContext)
   if (ctx === undefined) {
     throw new Error('useDataState must be used within a DataProvider')
+  }
+  return ctx
+}
+
+export function useDataDispatch(): Dispatch<DataAction> {
+  const ctx = useContext(DataDispatchContext)
+  if (ctx === undefined) {
+    throw new Error('useDataDispatch must be used within a DataProvider')
   }
   return ctx
 }

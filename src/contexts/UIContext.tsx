@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from 'react'
 
 // 1. State type
 interface UIState {
@@ -25,20 +25,33 @@ function uiReducer(state: UIState, _action: UIAction): UIState {
   return state
 }
 
-// 5. Context
+// 5. Contexts — separate state and dispatch for better performance
 const UIStateContext = createContext<UIState | undefined>(undefined)
+const UIDispatchContext = createContext<Dispatch<UIAction> | undefined>(undefined)
 
 // 6. Provider component
 export function UIProvider({ children }: { children: ReactNode }) {
-  const [state] = useReducer(uiReducer, initialState)
-  return <UIStateContext.Provider value={state}>{children}</UIStateContext.Provider>
+  const [state, dispatch] = useReducer(uiReducer, initialState)
+  return (
+    <UIStateContext.Provider value={state}>
+      <UIDispatchContext.Provider value={dispatch}>{children}</UIDispatchContext.Provider>
+    </UIStateContext.Provider>
+  )
 }
 
-// 7. Custom hook that throws if used outside provider
+// 7. Custom hooks that throw if used outside provider
 export function useUIState(): UIState {
   const ctx = useContext(UIStateContext)
   if (ctx === undefined) {
     throw new Error('useUIState must be used within a UIProvider')
+  }
+  return ctx
+}
+
+export function useUIDispatch(): Dispatch<UIAction> {
+  const ctx = useContext(UIDispatchContext)
+  if (ctx === undefined) {
+    throw new Error('useUIDispatch must be used within a UIProvider')
   }
   return ctx
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '../test/utils'
-import { useFilterState } from './FilterContext'
+import { useFilterState, useFilterDispatch } from './FilterContext'
 
 function Consumer() {
   const state = useFilterState()
@@ -10,6 +10,11 @@ function Consumer() {
       <span data-testid="velocityThreshold">{state.velocityThreshold}</span>
     </div>
   )
+}
+
+function DispatchConsumer() {
+  useFilterDispatch()
+  return <div>ok</div>
 }
 
 describe('FilterContext', () => {
@@ -24,6 +29,16 @@ describe('FilterContext', () => {
 
     expect(() => render(<Consumer />, { wrapper: undefined })).toThrow(
       'useFilterState must be used within a FilterProvider',
+    )
+
+    consoleSpy.mockRestore()
+  })
+
+  it('useFilterDispatch throws a descriptive error when used outside FilterProvider', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() => render(<DispatchConsumer />, { wrapper: undefined })).toThrow(
+      'useFilterDispatch must be used within a FilterProvider',
     )
 
     consoleSpy.mockRestore()

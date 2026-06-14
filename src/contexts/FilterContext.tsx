@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from 'react'
 import type { MapBounds, DateBucket } from '../types'
 
 // 1. State type
@@ -36,20 +36,33 @@ function filterReducer(state: FilterState, _action: FilterAction): FilterState {
   return state
 }
 
-// 5. Context
+// 5. Contexts — separate state and dispatch for better performance
 const FilterStateContext = createContext<FilterState | undefined>(undefined)
+const FilterDispatchContext = createContext<Dispatch<FilterAction> | undefined>(undefined)
 
 // 6. Provider component
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [state] = useReducer(filterReducer, initialState)
-  return <FilterStateContext.Provider value={state}>{children}</FilterStateContext.Provider>
+  const [state, dispatch] = useReducer(filterReducer, initialState)
+  return (
+    <FilterStateContext.Provider value={state}>
+      <FilterDispatchContext.Provider value={dispatch}>{children}</FilterDispatchContext.Provider>
+    </FilterStateContext.Provider>
+  )
 }
 
-// 7. Custom hook that throws if used outside provider
+// 7. Custom hooks that throw if used outside provider
 export function useFilterState(): FilterState {
   const ctx = useContext(FilterStateContext)
   if (ctx === undefined) {
     throw new Error('useFilterState must be used within a FilterProvider')
+  }
+  return ctx
+}
+
+export function useFilterDispatch(): Dispatch<FilterAction> {
+  const ctx = useContext(FilterDispatchContext)
+  if (ctx === undefined) {
+    throw new Error('useFilterDispatch must be used within a FilterProvider')
   }
   return ctx
 }

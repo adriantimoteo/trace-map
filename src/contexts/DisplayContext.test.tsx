@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '../test/utils'
-import { useDisplayState } from './DisplayContext'
+import { useDisplayState, useDisplayDispatch } from './DisplayContext'
 
 function Consumer() {
   const state = useDisplayState()
@@ -10,6 +10,11 @@ function Consumer() {
       <span data-testid="intensity">{state.intensity}</span>
     </div>
   )
+}
+
+function DispatchConsumer() {
+  useDisplayDispatch()
+  return <div>ok</div>
 }
 
 describe('DisplayContext', () => {
@@ -24,6 +29,16 @@ describe('DisplayContext', () => {
 
     expect(() => render(<Consumer />, { wrapper: undefined })).toThrow(
       'useDisplayState must be used within a DisplayProvider',
+    )
+
+    consoleSpy.mockRestore()
+  })
+
+  it('useDisplayDispatch throws a descriptive error when used outside DisplayProvider', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() => render(<DispatchConsumer />, { wrapper: undefined })).toThrow(
+      'useDisplayDispatch must be used within a DisplayProvider',
     )
 
     consoleSpy.mockRestore()
