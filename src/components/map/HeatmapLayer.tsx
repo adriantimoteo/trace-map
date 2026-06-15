@@ -29,7 +29,7 @@ export function HeatmapLayer({ map }: HeatmapLayerProps) {
       // that span many pixels at high zoom.
       const cellCounts = new Map<string, number>()
       for (const p of filteredPoints) {
-        const key = `${Math.floor(p.lat / 0.001)},${Math.floor(p.lng / 0.001)}`
+        const key = `${String(Math.floor(p.lat / 0.001))},${String(Math.floor(p.lng / 0.001))}`
         cellCounts.set(key, (cellCounts.get(key) ?? 0) + 1)
       }
       let localMax = 1
@@ -37,7 +37,7 @@ export function HeatmapLayer({ map }: HeatmapLayerProps) {
         if (count > localMax) localMax = count
       }
       const heatPoints: [number, number, number][] = filteredPoints.map(({ lat, lng }) => {
-        const key = `${Math.floor(lat / 0.001)},${Math.floor(lng / 0.001)}`
+        const key = `${String(Math.floor(lat / 0.001))},${String(Math.floor(lng / 0.001))}`
         return [lat, lng, (cellCounts.get(key) ?? 1) / localMax]
       })
       const layer = L.heatLayer(heatPoints, { max: 1 })
