@@ -33,7 +33,7 @@ describe('AppLayout', () => {
 
   it('renders the FilterPanel region', () => {
     render(<AppLayout />)
-    expect(screen.getByText('FilterPanel')).toBeInTheDocument()
+    expect(screen.getByText('Filters')).toBeInTheDocument()
   })
 
   it('renders the MapContainer region', () => {
