@@ -4,17 +4,20 @@ import { createContext, useContext, useReducer, type Dispatch, type ReactNode } 
 interface DisplayState {
   radius: number
   intensity: number
+  hotspotSmoothing: boolean
 }
 
 // 2. Action union type
 type DisplayAction =
   | { type: 'SET_RADIUS'; payload: number }
   | { type: 'SET_INTENSITY'; payload: number }
+  | { type: 'TOGGLE_HOTSPOT_SMOOTHING' }
 
 // 3. Initial state
 const initialState: DisplayState = {
   radius: 20,
   intensity: 0.5,
+  hotspotSmoothing: false,
 }
 
 // 4. Reducer
@@ -24,6 +27,8 @@ function displayReducer(state: DisplayState, action: DisplayAction): DisplayStat
       return { ...state, radius: Math.min(60, Math.max(5, action.payload)) }
     case 'SET_INTENSITY':
       return { ...state, intensity: Math.min(1, Math.max(0, action.payload)) }
+    case 'TOGGLE_HOTSPOT_SMOOTHING':
+      return { ...state, hotspotSmoothing: !state.hotspotSmoothing }
     default:
       return state
   }

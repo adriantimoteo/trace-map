@@ -4,6 +4,7 @@ import { useFilterState, useFilterDispatch } from '../../contexts/FilterContext'
 import { useSortedSpeeds } from '../../hooks/useSortedSpeeds'
 import { countExcludedAtThreshold } from '../../utils/velocityCount'
 import { FormatSelector } from './FormatSelector'
+import { HotspotSmoothingToggle } from './HotspotSmoothingToggle'
 
 const VELOCITY_MIN = 5
 const VELOCITY_MAX = 120
@@ -106,6 +107,7 @@ export function AdvancedOptions() {
             </p>
           </div>
           <FormatSelector />
+          <HotspotSmoothingToggle />
         </div>
       )}
     </div>

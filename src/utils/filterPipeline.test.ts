@@ -351,3 +351,68 @@ describe('computeMaxDensity', () => {
     expect(computeMaxDensity(scattered)).toBe(1)
   })
 })
+
+// ---------------------------------------------------------------------------
+// computeMaxDensity — percentile mode
+// ---------------------------------------------------------------------------
+
+describe('computeMaxDensity — percentile parameter', () => {
+  it('with percentile=1.0 (default) returns the same absolute max as when called with no second arg', () => {
+    // Two clusters: 7 points in cell A, 3 in cell B
+    const clusterA = Array.from({ length: 7 }, () => makePoint({ lat: 51.5, lng: 0.0 }))
+    const clusterB = Array.from({ length: 3 }, () => makePoint({ lat: 52.0, lng: 1.0 }))
+    const points = [...clusterA, ...clusterB]
+    expect(computeMaxDensity(points, 1.0)).toBe(computeMaxDensity(points))
+    expect(computeMaxDensity(points, 1.0)).toBe(7)
+  })
+
+  it('with percentile=0.95 returns the 95th-percentile bin count, not the absolute max', () => {
+    // 21 distinct bins:
+    //   bins 0–19 each have counts 1–20 (one point per bin, spread across distinct cells)
+    //   bin 20 (home location) has 10000 points — massive outlier
+    //
+    // Sorted counts: [1, 2, 3, ..., 20, 10000]  (21 values)
+    // Index = Math.floor(21 * 0.95) = Math.floor(19.95) = 19
+    // sortedCounts[19] = 20  (not 10000)
+
+    const points: ReturnType<typeof makePoint>[] = []
+
+    // Bins 0–19: spread out by 1° in longitude so they're in distinct 0.001° cells.
+    // Use fixed lat=51.0 and lng = i degrees so each cell is clearly separate.
+    // Bin i gets (i+1) points → counts 1, 2, 3, ..., 20.
+    for (let i = 0; i < 20; i++) {
+      for (let j = 0; j < i + 1; j++) {
+        points.push(makePoint({ lat: 51.0, lng: i * 1.0 }))
+      }
+    }
+
+    // Bin 20: 10000 points — the home location hotspot at a distinct coordinate
+    for (let k = 0; k < 10000; k++) {
+      points.push(makePoint({ lat: 51.0, lng: 100.0 }))
+    }
+
+    // Sanity check: absolute max should be 10000
+    expect(computeMaxDensity(points)).toBe(10000)
+
+    // Percentile ceiling should be 20 (the 19th sorted value), not 10000
+    expect(computeMaxDensity(points, 0.95)).toBe(20)
+    expect(computeMaxDensity(points, 0.95)).not.toBe(10000)
+  })
+
+  it('with percentile=0.95 on empty array returns 1 (same as default behaviour)', () => {
+    expect(computeMaxDensity([], 0.95)).toBe(1)
+  })
+
+  it('with percentile=0.5 returns the median bin count', () => {
+    // 4 bins with counts 2, 4, 6, 8
+    // Sorted: [2, 4, 6, 8]
+    // Index = Math.floor(4 * 0.5) = 2 → value 6
+    const points: ReturnType<typeof makePoint>[] = []
+    ;[2, 4, 6, 8].forEach((count, i) => {
+      for (let j = 0; j < count; j++) {
+        points.push(makePoint({ lat: 51.0 + i, lng: 0.0 }))
+      }
+    })
+    expect(computeMaxDensity(points, 0.5)).toBe(6)
+  })
+})

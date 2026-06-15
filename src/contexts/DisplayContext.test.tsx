@@ -49,6 +49,7 @@ function Consumer() {
     <div>
       <span data-testid="radius">{state.radius}</span>
       <span data-testid="intensity">{state.intensity}</span>
+      <span data-testid="hotspot-smoothing">{String(state.hotspotSmoothing)}</span>
     </div>
   )
 }
@@ -67,6 +68,11 @@ describe('DisplayContext', () => {
     render(<Consumer />)
     expect(screen.getByTestId('radius').textContent).toBe('20')
     expect(screen.getByTestId('intensity').textContent).toBe('0.5')
+  })
+
+  it('has default hotspotSmoothing of false', () => {
+    render(<Consumer />)
+    expect(screen.getByTestId('hotspot-smoothing').textContent).toBe('false')
   })
 
   it('throws a descriptive error when used outside DisplayProvider', () => {
@@ -191,5 +197,37 @@ describe('displayReducer — SET_INTENSITY', () => {
       getDispatch()({ type: 'SET_INTENSITY', payload: 0.8 })
     })
     expect(screen.getByTestId('radius').textContent).toBe('20')
+  })
+})
+
+describe('displayReducer — TOGGLE_HOTSPOT_SMOOTHING', () => {
+  it('toggles hotspotSmoothing from false to true', () => {
+    renderWithDispatch(<Consumer />)
+    expect(screen.getByTestId('hotspot-smoothing').textContent).toBe('false')
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_HOTSPOT_SMOOTHING' })
+    })
+    expect(screen.getByTestId('hotspot-smoothing').textContent).toBe('true')
+  })
+
+  it('toggles hotspotSmoothing from true back to false (dispatch twice)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_HOTSPOT_SMOOTHING' })
+    })
+    expect(screen.getByTestId('hotspot-smoothing').textContent).toBe('true')
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_HOTSPOT_SMOOTHING' })
+    })
+    expect(screen.getByTestId('hotspot-smoothing').textContent).toBe('false')
+  })
+
+  it('does not affect radius or intensity when toggling hotspotSmoothing', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_HOTSPOT_SMOOTHING' })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('20')
+    expect(screen.getByTestId('intensity').textContent).toBe('0.5')
   })
 })
