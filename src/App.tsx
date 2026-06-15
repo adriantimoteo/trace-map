@@ -1,6 +1,7 @@
 import { DataProvider } from './contexts/DataContext'
 import { DisplayProvider } from './contexts/DisplayContext'
 import { FilterProvider } from './contexts/FilterContext'
+import { MapProvider } from './contexts/MapContext'
 import { UIProvider } from './contexts/UIContext'
 import { useUIState } from './contexts/UIContext'
 import { UploadScreen } from './components/upload/UploadScreen'
@@ -22,7 +23,9 @@ function App() {
       <DataProvider>
         <FilterProvider>
           <DisplayProvider>
-            <AppContent />
+            <MapProvider>
+              <AppContent />
+            </MapProvider>
           </DisplayProvider>
         </FilterProvider>
       </DataProvider>
