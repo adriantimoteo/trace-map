@@ -10,7 +10,9 @@ export function Header() {
         <button
           type="button"
           className="rounded bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600 transition-colors"
-          onClick={() => dispatch({ type: 'SET_SCREEN', payload: 'upload' })}
+          onClick={() => {
+            dispatch({ type: 'SET_SCREEN', payload: 'upload' })
+          }}
         >
           Load new file
         </button>

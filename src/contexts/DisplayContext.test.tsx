@@ -1,6 +1,47 @@
 import { describe, it, expect, vi } from 'vitest'
+import { act, useRef, useEffect } from 'react'
 import { render, screen } from '../test/utils'
 import { useDisplayState, useDisplayDispatch } from './DisplayContext'
+
+// ---------------------------------------------------------------------------
+// Dispatch capture
+// ---------------------------------------------------------------------------
+
+type DisplayDispatch = ReturnType<typeof useDisplayDispatch>
+
+const dispatchRef = { current: null as DisplayDispatch | null }
+
+function getDispatch(): DisplayDispatch {
+  if (dispatchRef.current === null) {
+    throw new Error('DispatchCapture has not rendered yet')
+  }
+  return dispatchRef.current
+}
+
+function DispatchCapture() {
+  const dispatch = useDisplayDispatch()
+  const stableRef = useRef(dispatch)
+  useEffect(() => {
+    stableRef.current = dispatch
+    dispatchRef.current = dispatch
+  })
+  dispatchRef.current = dispatch
+  return null
+}
+
+function renderWithDispatch(ui: React.ReactElement) {
+  dispatchRef.current = null
+  return render(
+    <>
+      <DispatchCapture />
+      {ui}
+    </>,
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Consumer components
+// ---------------------------------------------------------------------------
 
 function Consumer() {
   const state = useDisplayState()
@@ -16,6 +57,10 @@ function DispatchConsumer() {
   useDisplayDispatch()
   return <div>ok</div>
 }
+
+// ---------------------------------------------------------------------------
+// Smoke tests (existing)
+// ---------------------------------------------------------------------------
 
 describe('DisplayContext', () => {
   it('has default radius of 20 and intensity of 0.5', () => {
@@ -42,5 +87,109 @@ describe('DisplayContext', () => {
     )
 
     consoleSpy.mockRestore()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Reducer tests — all via real DisplayProvider + rendered output
+// ---------------------------------------------------------------------------
+
+describe('displayReducer — SET_RADIUS', () => {
+  it('sets a valid radius (20)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_RADIUS', payload: 20 })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('20')
+  })
+
+  it('clamps value below minimum (3 → 5)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_RADIUS', payload: 3 })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('5')
+  })
+
+  it('clamps value above maximum (80 → 60)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_RADIUS', payload: 80 })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('60')
+  })
+
+  it('accepts the minimum boundary value (5)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_RADIUS', payload: 5 })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('5')
+  })
+
+  it('accepts the maximum boundary value (60)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_RADIUS', payload: 60 })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('60')
+  })
+
+  it('does not affect intensity when radius changes', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_RADIUS', payload: 30 })
+    })
+    expect(screen.getByTestId('intensity').textContent).toBe('0.5')
+  })
+})
+
+describe('displayReducer — SET_INTENSITY', () => {
+  it('sets a valid intensity (0.5)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_INTENSITY', payload: 0.5 })
+    })
+    expect(screen.getByTestId('intensity').textContent).toBe('0.5')
+  })
+
+  it('clamps value below 0 (-0.2 → 0)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_INTENSITY', payload: -0.2 })
+    })
+    expect(screen.getByTestId('intensity').textContent).toBe('0')
+  })
+
+  it('clamps value above 1 (1.5 → 1)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_INTENSITY', payload: 1.5 })
+    })
+    expect(screen.getByTestId('intensity').textContent).toBe('1')
+  })
+
+  it('accepts the minimum boundary value (0)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_INTENSITY', payload: 0 })
+    })
+    expect(screen.getByTestId('intensity').textContent).toBe('0')
+  })
+
+  it('accepts the maximum boundary value (1)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_INTENSITY', payload: 1 })
+    })
+    expect(screen.getByTestId('intensity').textContent).toBe('1')
+  })
+
+  it('does not affect radius when intensity changes', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'SET_INTENSITY', payload: 0.8 })
+    })
+    expect(screen.getByTestId('radius').textContent).toBe('20')
   })
 })

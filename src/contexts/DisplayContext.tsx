@@ -17,9 +17,16 @@ const initialState: DisplayState = {
   intensity: 0.5,
 }
 
-// 4. Reducer (stubs — returns unchanged state for all actions)
-function displayReducer(state: DisplayState, _action: DisplayAction): DisplayState {
-  return state
+// 4. Reducer
+function displayReducer(state: DisplayState, action: DisplayAction): DisplayState {
+  switch (action.type) {
+    case 'SET_RADIUS':
+      return { ...state, radius: Math.min(60, Math.max(5, action.payload)) }
+    case 'SET_INTENSITY':
+      return { ...state, intensity: Math.min(1, Math.max(0, action.payload)) }
+    default:
+      return state
+  }
 }
 
 // 5. Contexts — separate state and dispatch for better performance
