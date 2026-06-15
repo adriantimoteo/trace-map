@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { haversineApprox, parseTimestamp, dedup, strideSample } from './locationWorker'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { haversineApprox, parseTimestamp, dedup, strideSample, runPipeline } from './locationWorker'
+import type { CancelToken } from './locationWorker'
+import type { WorkerOutboundMessage } from '../types'
 
 // ---------------------------------------------------------------------------
 // haversineApprox
@@ -265,5 +267,90 @@ describe('strideSample', () => {
     expect(result[0].timestamp).toBe(0)
     expect(result[1].timestamp).toBe(2)
     expect(result[2].timestamp).toBe(4)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// runPipeline — integration tests against real JSON buffers
+// These tests caught a bug where stack.length was checked as 1 instead of 2,
+// causing every valid file to fail with "No locations array found in file".
+// ---------------------------------------------------------------------------
+
+function makeBuffer(json: string): ArrayBuffer {
+  return new TextEncoder().encode(json).buffer
+}
+
+function collectMessages(
+  buffer: ArrayBuffer,
+  token: CancelToken,
+): WorkerOutboundMessage[] {
+  const messages: WorkerOutboundMessage[] = []
+  const postMessageSpy = vi.fn((msg: WorkerOutboundMessage) => {
+    messages.push(msg)
+  })
+  vi.stubGlobal('self', { postMessage: postMessageSpy })
+  runPipeline('records', buffer, { dedupDistance: 50, dedupTime: 60_000 }, token)
+  return messages
+}
+
+describe('runPipeline', () => {
+  beforeEach(() => {
+    vi.stubGlobal('self', { postMessage: vi.fn() })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('emits COMPLETE with correct totalCount for a valid locations file', () => {
+    const json = JSON.stringify({
+      locations: [
+        { timestamp: '2023-01-01T00:00:00.000Z', latitudeE7: 515000000, longitudeE7: -1000000 },
+        { timestamp: '2023-01-01T00:05:00.000Z', latitudeE7: 516000000, longitudeE7: -1000000 },
+        { timestamp: '2023-01-01T00:10:00.000Z', latitudeE7: 517000000, longitudeE7: -1000000 },
+      ],
+    })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    const complete = messages.find((m) => m.type === 'COMPLETE')
+    expect(complete).toBeDefined()
+    expect(complete?.type === 'COMPLETE' && complete.payload.totalCount).toBeGreaterThan(0)
+
+    const error = messages.find((m) => m.type === 'ERROR')
+    expect(error).toBeUndefined()
+  })
+
+  it('emits ERROR when the file has no locations array', () => {
+    const json = JSON.stringify({ foo: 'bar' })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    const error = messages.find((m) => m.type === 'ERROR')
+    expect(error).toBeDefined()
+    expect(messages.find((m) => m.type === 'COMPLETE')).toBeUndefined()
+  })
+
+  it('emits BATCH messages containing valid LocationPoint objects', () => {
+    const json = JSON.stringify({
+      locations: [
+        { timestamp: '2023-06-01T00:00:00.000Z', latitudeE7: 515000000, longitudeE7: -1000000 },
+        { timestamp: '2023-06-01T00:10:00.000Z', latitudeE7: 520000000, longitudeE7: -1000000 },
+      ],
+    })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    const batches = messages.filter((m) => m.type === 'BATCH')
+    expect(batches.length).toBeGreaterThan(0)
+    const firstBatch = batches[0]
+    if (firstBatch?.type === 'BATCH') {
+      expect(firstBatch.payload.points.length).toBeGreaterThan(0)
+      const pt = firstBatch.payload.points[0]
+      expect(pt).toHaveProperty('lat')
+      expect(pt).toHaveProperty('lng')
+      expect(pt).toHaveProperty('timestamp')
+      expect(pt).toHaveProperty('speed')
+    }
   })
 })
