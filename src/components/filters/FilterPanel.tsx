@@ -4,6 +4,7 @@ import { PointCounter } from './PointCounter'
 import { DateRangeFilter } from './DateRangeFilter'
 import { VelocityFilter } from './VelocityFilter'
 import { ViewportFilter } from './ViewportFilter'
+import { AdvancedOptions } from './AdvancedOptions'
 import { useFilteredPoints } from '../../hooks/useFilteredPoints'
 
 export function FilterPanel() {
@@ -19,6 +20,8 @@ export function FilterPanel() {
       <VelocityFilter />
 
       <ViewportFilter />
+
+      <AdvancedOptions />
 
       <div className="mt-auto flex flex-col gap-2">
         <SamplingNotice />
