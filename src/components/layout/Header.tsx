@@ -1,6 +1,11 @@
 import { useUIDispatch } from '../../contexts/UIContext'
 
-export function Header() {
+interface HeaderProps {
+  onExport: () => void
+  isExporting: boolean
+}
+
+export function Header({ onExport, isExporting }: HeaderProps) {
   const dispatch = useUIDispatch()
 
   return (
@@ -18,9 +23,11 @@ export function Header() {
         </button>
         <button
           type="button"
-          className="rounded bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600 transition-colors"
+          className="rounded bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={onExport}
+          disabled={isExporting}
         >
-          Export PNG
+          {isExporting ? 'Exporting…' : 'Export PNG'}
         </button>
       </div>
     </header>
