@@ -25,7 +25,7 @@ export type WorkerInboundMessage =
         buffer: ArrayBuffer
         dedupDistance: number
         dedupTime: number
-        format: 'auto' | 'records'
+        format: 'auto' | 'records' | 'semantic'
       }
     }
   | { type: 'CANCEL' }

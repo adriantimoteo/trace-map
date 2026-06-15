@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react'
 import { useDataDispatch } from '../contexts/DataContext'
-import { useUIDispatch } from '../contexts/UIContext'
+import { useUIDispatch, useUIState } from '../contexts/UIContext'
 import type { WorkerOutboundMessage } from '../types'
 
 const DEDUP_DISTANCE = 50 // metres
@@ -13,6 +13,7 @@ const DEDUP_TIME = 60_000 // ms
 export function useLocationWorker(): { loadFile: (file: File) => void } {
   const dataDispatch = useDataDispatch()
   const uiDispatch = useUIDispatch()
+  const { fileFormat } = useUIState()
   const workerRef = useRef<Worker | null>(null)
 
   const loadFile = useCallback(
@@ -131,7 +132,7 @@ export function useLocationWorker(): { loadFile: (file: File) => void } {
             type: 'LOAD_FILE',
             payload: {
               buffer: fileReader.result as ArrayBuffer,
-              format: 'records' as const,
+              format: fileFormat,
               dedupDistance: DEDUP_DISTANCE,
               dedupTime: DEDUP_TIME,
             },
@@ -152,7 +153,7 @@ export function useLocationWorker(): { loadFile: (file: File) => void } {
 
       reader.readAsText(slice)
     },
-    [dataDispatch, uiDispatch],
+    [dataDispatch, uiDispatch, fileFormat],
   )
 
   return { loadFile }

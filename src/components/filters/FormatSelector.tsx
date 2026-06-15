@@ -4,7 +4,7 @@ export function FormatSelector() {
   const { fileFormat } = useUIState()
   const dispatch = useUIDispatch()
 
-  function handleChange(value: 'auto' | 'records') {
+  function handleChange(value: 'auto' | 'records' | 'semantic') {
     dispatch({ type: 'SET_FILE_FORMAT', payload: value })
   }
 
@@ -36,17 +36,17 @@ export function FormatSelector() {
           />
           Records.json
         </label>
-        <label className="flex items-center gap-2 text-sm text-gray-400">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="radio"
             name="file-format"
             value="semantic"
             checked={fileFormat === 'semantic'}
-            disabled
-            onChange={() => {}}
+            onChange={() => {
+              handleChange('semantic')
+            }}
           />
           Semantic Location History
-          <span className="text-xs text-gray-400">coming soon</span>
         </label>
       </div>
     </div>

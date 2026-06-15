@@ -332,13 +332,17 @@ function makeBuffer(json: string): ArrayBuffer {
   return new TextEncoder().encode(json).buffer
 }
 
-function collectMessages(buffer: ArrayBuffer, token: CancelToken): WorkerOutboundMessage[] {
+function collectMessages(
+  buffer: ArrayBuffer,
+  token: CancelToken,
+  format: 'auto' | 'records' | 'semantic' = 'auto',
+): WorkerOutboundMessage[] {
   const messages: WorkerOutboundMessage[] = []
   const postMessageSpy = vi.fn((msg: WorkerOutboundMessage) => {
     messages.push(msg)
   })
   vi.stubGlobal('self', { postMessage: postMessageSpy })
-  runPipeline('records', buffer, { dedupDistance: 50, dedupTime: 60_000 }, token)
+  runPipeline(format, buffer, { dedupDistance: 50, dedupTime: 60_000 }, token)
   return messages
 }
 
@@ -496,5 +500,104 @@ describe('runPipeline', () => {
     expect(pt).toHaveProperty('lng')
     expect(pt).toHaveProperty('timestamp')
     expect(pt).toHaveProperty('speed')
+  })
+
+  describe('format routing', () => {
+    it('format "records" on a Timeline.json buffer emits ERROR (no locations array)', () => {
+      const json = JSON.stringify({
+        semanticSegments: [
+          {
+            timelinePath: [
+              { point: '51.5°, -0.1°', time: '2023-06-01T00:00:00.000Z' },
+              { point: '51.51°, -0.1°', time: '2023-06-01T00:10:00.000Z' },
+            ],
+          },
+        ],
+      })
+      const token: CancelToken = { cancelled: false }
+      const messages = collectMessages(makeBuffer(json), token, 'records')
+
+      const error = messages.find((m) => m.type === 'ERROR')
+      expect(error).toBeDefined()
+      expect(messages.find((m) => m.type === 'COMPLETE')).toBeUndefined()
+    })
+
+    it('format "semantic" on a Records.json buffer emits ERROR (no semanticSegments)', () => {
+      const json = JSON.stringify({
+        locations: [
+          { timestamp: '2023-06-01T00:00:00.000Z', latitudeE7: 515000000, longitudeE7: -1000000 },
+          { timestamp: '2023-06-01T00:10:00.000Z', latitudeE7: 520000000, longitudeE7: -1000000 },
+        ],
+      })
+      const token: CancelToken = { cancelled: false }
+      const messages = collectMessages(makeBuffer(json), token, 'semantic')
+
+      const error = messages.find((m) => m.type === 'ERROR')
+      expect(error).toBeDefined()
+      expect(messages.find((m) => m.type === 'COMPLETE')).toBeUndefined()
+    })
+
+    it('format "semantic" on a Timeline.json buffer emits COMPLETE', () => {
+      const json = JSON.stringify({
+        semanticSegments: [
+          {
+            timelinePath: [
+              { point: '51.5°, -0.1°', time: '2023-06-01T00:00:00.000Z' },
+              { point: '51.51°, -0.1°', time: '2023-06-01T00:10:00.000Z' },
+              { point: '51.52°, -0.1°', time: '2023-06-01T00:20:00.000Z' },
+            ],
+          },
+        ],
+      })
+      const token: CancelToken = { cancelled: false }
+      const messages = collectMessages(makeBuffer(json), token, 'semantic')
+
+      expect(messages.find((m) => m.type === 'ERROR')).toBeUndefined()
+      const complete = messages.find((m) => m.type === 'COMPLETE')
+      expect(complete).toBeDefined()
+      expect(complete?.type === 'COMPLETE' && complete.payload.totalCount).toBeGreaterThan(0)
+    })
+
+    it('format "records" on a Records.json buffer emits COMPLETE', () => {
+      const json = JSON.stringify({
+        locations: [
+          { timestamp: '2023-06-01T00:00:00.000Z', latitudeE7: 515000000, longitudeE7: -1000000 },
+          { timestamp: '2023-06-01T00:10:00.000Z', latitudeE7: 520000000, longitudeE7: -1000000 },
+          { timestamp: '2023-06-01T00:20:00.000Z', latitudeE7: 525000000, longitudeE7: -1000000 },
+        ],
+      })
+      const token: CancelToken = { cancelled: false }
+      const messages = collectMessages(makeBuffer(json), token, 'records')
+
+      expect(messages.find((m) => m.type === 'ERROR')).toBeUndefined()
+      const complete = messages.find((m) => m.type === 'COMPLETE')
+      expect(complete).toBeDefined()
+      expect(complete?.type === 'COMPLETE' && complete.payload.totalCount).toBeGreaterThan(0)
+    })
+
+    it('format "auto" accepts both Records.json and Timeline.json', () => {
+      const recordsJson = JSON.stringify({
+        locations: [
+          { timestamp: '2023-06-01T00:00:00.000Z', latitudeE7: 515000000, longitudeE7: -1000000 },
+        ],
+      })
+      const timelineJson = JSON.stringify({
+        semanticSegments: [
+          {
+            timelinePath: [{ point: '51.5°, -0.1°', time: '2023-06-01T00:00:00.000Z' }],
+          },
+        ],
+      })
+
+      const token1: CancelToken = { cancelled: false }
+      const msgs1 = collectMessages(makeBuffer(recordsJson), token1, 'auto')
+      expect(msgs1.find((m) => m.type === 'ERROR')).toBeUndefined()
+      expect(msgs1.find((m) => m.type === 'COMPLETE')).toBeDefined()
+
+      const token2: CancelToken = { cancelled: false }
+      const msgs2 = collectMessages(makeBuffer(timelineJson), token2, 'auto')
+      expect(msgs2.find((m) => m.type === 'ERROR')).toBeUndefined()
+      expect(msgs2.find((m) => m.type === 'COMPLETE')).toBeDefined()
+    })
   })
 })

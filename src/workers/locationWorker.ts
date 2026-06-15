@@ -150,14 +150,11 @@ export interface CancelToken {
 }
 
 export function runPipeline(
-  _format: 'auto' | 'records',
+  format: 'auto' | 'records' | 'semantic',
   buffer: ArrayBuffer,
   _options: { dedupDistance: number; dedupTime: number },
   token: CancelToken,
 ): void {
-  // Both 'auto' and 'records' route to the Records.json parser in v1.
-  // Additional branches (e.g. Semantic History in v3+) will be added here.
-
   const emit = (msg: WorkerOutboundMessage) => {
     ;(self as unknown as Worker).postMessage(msg)
   }
@@ -166,8 +163,19 @@ export function runPipeline(
   const PROGRESS_INTERVAL = 5_000
   const BATCH_INTERVAL = 5_000
 
+  // Select JSONParser paths based on format:
+  //   'auto'     → both paths (Records.json + Timeline.json)
+  //   'records'  → $.locations.* only
+  //   'semantic' → $.semanticSegments.*.timelinePath.* only
+  const paths =
+    format === 'records'
+      ? ['$.locations.*']
+      : format === 'semantic'
+        ? ['$.semanticSegments.*.timelinePath.*']
+        : ['$.locations.*', '$.semanticSegments.*.timelinePath.*']
+
   const parser = new JSONParser({
-    paths: ['$.locations.*', '$.semanticSegments.*.timelinePath.*'],
+    paths,
     keepStack: false,
   })
 
