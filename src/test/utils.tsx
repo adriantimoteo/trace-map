@@ -4,13 +4,16 @@ import { UIProvider } from '../contexts/UIContext'
 import { DataProvider } from '../contexts/DataContext'
 import { FilterProvider } from '../contexts/FilterContext'
 import { DisplayProvider } from '../contexts/DisplayContext'
+import { MapProvider } from '../contexts/MapContext'
 
 function AllProviders({ children }: { children: React.ReactNode }) {
   return (
     <UIProvider>
       <DataProvider>
         <FilterProvider>
-          <DisplayProvider>{children}</DisplayProvider>
+          <DisplayProvider>
+            <MapProvider>{children}</MapProvider>
+          </DisplayProvider>
         </FilterProvider>
       </DataProvider>
     </UIProvider>
