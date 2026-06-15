@@ -280,10 +280,7 @@ function makeBuffer(json: string): ArrayBuffer {
   return new TextEncoder().encode(json).buffer
 }
 
-function collectMessages(
-  buffer: ArrayBuffer,
-  token: CancelToken,
-): WorkerOutboundMessage[] {
+function collectMessages(buffer: ArrayBuffer, token: CancelToken): WorkerOutboundMessage[] {
   const messages: WorkerOutboundMessage[] = []
   const postMessageSpy = vi.fn((msg: WorkerOutboundMessage) => {
     messages.push(msg)
@@ -343,14 +340,14 @@ describe('runPipeline', () => {
 
     const batches = messages.filter((m) => m.type === 'BATCH')
     expect(batches.length).toBeGreaterThan(0)
+    // firstBatch is defined because we asserted batches.length > 0 above
+
     const firstBatch = batches[0]
-    if (firstBatch?.type === 'BATCH') {
-      expect(firstBatch.payload.points.length).toBeGreaterThan(0)
-      const pt = firstBatch.payload.points[0]
-      expect(pt).toHaveProperty('lat')
-      expect(pt).toHaveProperty('lng')
-      expect(pt).toHaveProperty('timestamp')
-      expect(pt).toHaveProperty('speed')
-    }
+    expect(firstBatch.payload.points.length).toBeGreaterThan(0)
+    const pt = firstBatch.payload.points[0]
+    expect(pt).toHaveProperty('lat')
+    expect(pt).toHaveProperty('lng')
+    expect(pt).toHaveProperty('timestamp')
+    expect(pt).toHaveProperty('speed')
   })
 })
