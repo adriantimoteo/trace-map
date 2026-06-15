@@ -1,6 +1,7 @@
 import { FileMetaBadge } from '../common/FileMetaBadge'
 import { SamplingNotice } from '../common/SamplingNotice'
 import { PointCounter } from './PointCounter'
+import { DateRangeFilter } from './DateRangeFilter'
 
 export function FilterPanel() {
   return (
@@ -8,7 +9,7 @@ export function FilterPanel() {
       <h2 className="text-base font-semibold">Filters</h2>
       <FileMetaBadge />
 
-      {/* filter controls will go here in Phase 2 */}
+      <DateRangeFilter />
 
       <div className="mt-auto flex flex-col gap-2">
         <SamplingNotice />
