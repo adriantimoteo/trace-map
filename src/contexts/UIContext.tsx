@@ -14,6 +14,7 @@ type UIAction =
   | { type: 'TOGGLE_ADVANCED_OPTIONS' }
   | { type: 'DISMISS_SAMPLING_NOTICE' }
   | { type: 'SET_FILE_FORMAT'; payload: 'auto' | 'records' | 'semantic' }
+  | { type: 'RESET_FOR_NEW_FILE' }
 
 // 3. Initial state
 const initialState: UIState = {
@@ -34,6 +35,8 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return { ...state, samplingNoticeDismissed: true }
     case 'SET_FILE_FORMAT':
       return { ...state, fileFormat: action.payload }
+    case 'RESET_FOR_NEW_FILE':
+      return { ...state, samplingNoticeDismissed: false }
     default:
       return state
   }

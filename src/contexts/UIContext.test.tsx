@@ -123,6 +123,124 @@ describe('uiReducer — SET_FILE_FORMAT', () => {
   })
 })
 
+describe('uiReducer — RESET_FOR_NEW_FILE', () => {
+  function FullStateConsumer() {
+    const state = useUIState()
+    return (
+      <div>
+        <span data-testid="dismissed">{String(state.samplingNoticeDismissed)}</span>
+        <span data-testid="advanced-open">{String(state.advancedOptionsOpen)}</span>
+        <span data-testid="file-format">{state.fileFormat}</span>
+        <span data-testid="screen">{state.screen}</span>
+      </div>
+    )
+  }
+
+  it('resets samplingNoticeDismissed to false', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <FullStateConsumer />
+      </>,
+    )
+
+    // First dismiss the notice
+    act(() => {
+      dispatch({ type: 'DISMISS_SAMPLING_NOTICE' })
+    })
+    expect(screen.getByTestId('dismissed').textContent).toBe('true')
+
+    // Then reset for new file
+    act(() => {
+      dispatch({ type: 'RESET_FOR_NEW_FILE' })
+    })
+    expect(screen.getByTestId('dismissed').textContent).toBe('false')
+  })
+
+  it('leaves advancedOptionsOpen unchanged', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <FullStateConsumer />
+      </>,
+    )
+
+    // Open advanced options
+    act(() => {
+      dispatch({ type: 'TOGGLE_ADVANCED_OPTIONS' })
+    })
+    expect(screen.getByTestId('advanced-open').textContent).toBe('true')
+
+    // Reset for new file — advanced options should remain open
+    act(() => {
+      dispatch({ type: 'RESET_FOR_NEW_FILE' })
+    })
+    expect(screen.getByTestId('advanced-open').textContent).toBe('true')
+  })
+
+  it('leaves fileFormat unchanged', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <FullStateConsumer />
+      </>,
+    )
+
+    act(() => {
+      dispatch({ type: 'SET_FILE_FORMAT', payload: 'records' })
+    })
+    expect(screen.getByTestId('file-format').textContent).toBe('records')
+
+    act(() => {
+      dispatch({ type: 'RESET_FOR_NEW_FILE' })
+    })
+    expect(screen.getByTestId('file-format').textContent).toBe('records')
+  })
+
+  it('leaves screen unchanged', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <FullStateConsumer />
+      </>,
+    )
+
+    act(() => {
+      dispatch({ type: 'SET_SCREEN', payload: 'app' })
+    })
+    expect(screen.getByTestId('screen').textContent).toBe('app')
+
+    act(() => {
+      dispatch({ type: 'RESET_FOR_NEW_FILE' })
+    })
+    expect(screen.getByTestId('screen').textContent).toBe('app')
+  })
+})
+
 describe('uiReducer — DISMISS_SAMPLING_NOTICE', () => {
   it('sets samplingNoticeDismissed to true', () => {
     let dispatch!: ReturnType<typeof useUIDispatch>
