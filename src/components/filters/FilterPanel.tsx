@@ -5,6 +5,7 @@ import { DateRangeFilter } from './DateRangeFilter'
 import { VelocityFilter } from './VelocityFilter'
 import { ViewportFilter } from './ViewportFilter'
 import { AdvancedOptions } from './AdvancedOptions'
+import { DisplayControls } from './DisplayControls'
 import { useFilteredPoints } from '../../hooks/useFilteredPoints'
 
 export function FilterPanel() {
@@ -20,6 +21,8 @@ export function FilterPanel() {
       <VelocityFilter />
 
       <ViewportFilter />
+
+      <DisplayControls />
 
       <AdvancedOptions />
 

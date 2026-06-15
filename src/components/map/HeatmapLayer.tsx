@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet.heat'
 import { useDataState } from '../../contexts/DataContext'
+import { useDisplayState } from '../../contexts/DisplayContext'
 import { useFilteredPoints } from '../../hooks/useFilteredPoints'
 
 interface HeatmapLayerProps {
@@ -10,7 +11,8 @@ interface HeatmapLayerProps {
 
 export function HeatmapLayer({ map }: HeatmapLayerProps) {
   const { status } = useDataState()
-  const { filteredPoints } = useFilteredPoints()
+  const { radius, intensity } = useDisplayState()
+  const { filteredPoints, maxDensity } = useFilteredPoints()
   const heatLayerRef = useRef<L.Layer | null>(null)
 
   useEffect(() => {
@@ -40,11 +42,17 @@ export function HeatmapLayer({ map }: HeatmapLayerProps) {
         const key = `${String(Math.floor(lat / 0.001))},${String(Math.floor(lng / 0.001))}`
         return [lat, lng, (cellCounts.get(key) ?? 1) / localMax]
       })
-      const layer = L.heatLayer(heatPoints, { max: 1 })
+
+      // effectiveMax: maps intensity slider [0,1] to [maxDensity*0.1, maxDensity*1.0]
+      // At intensity=1.0 → effectiveMax=maxDensity (only densest cluster reaches hottest colour)
+      // At intensity=0.0 → effectiveMax=maxDensity*0.1 (even sparse areas appear hot)
+      const effectiveMax = maxDensity * (0.1 + intensity * 0.9)
+
+      const layer = L.heatLayer(heatPoints, { radius, max: effectiveMax })
       layer.addTo(map)
       heatLayerRef.current = layer
     }
-  }, [map, filteredPoints, status])
+  }, [map, filteredPoints, status, radius, intensity, maxDensity])
 
   return null
 }

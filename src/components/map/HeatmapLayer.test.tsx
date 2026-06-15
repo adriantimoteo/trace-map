@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act } from 'react'
 import { render } from '../../test/utils'
 import { useDataDispatch } from '../../contexts/DataContext'
+import { useDisplayDispatch } from '../../contexts/DisplayContext'
 import { useRef, useEffect } from 'react'
 import type { LocationPoint } from '../../types'
 
@@ -62,6 +63,24 @@ function DispatchCapture() {
 }
 
 // ---------------------------------------------------------------------------
+// DisplayDispatch capture — for seeding radius/intensity
+// ---------------------------------------------------------------------------
+type DisplayDispatch = ReturnType<typeof useDisplayDispatch>
+const displayDispatchRef = { current: null as DisplayDispatch | null }
+
+function getDisplayDispatch(): DisplayDispatch {
+  if (displayDispatchRef.current === null)
+    throw new Error('DisplayDispatchCapture has not rendered')
+  return displayDispatchRef.current
+}
+
+function DisplayDispatchCapture() {
+  const dispatch = useDisplayDispatch()
+  displayDispatchRef.current = dispatch
+  return null
+}
+
+// ---------------------------------------------------------------------------
 // Import component under test — after mocks are set up
 // ---------------------------------------------------------------------------
 const { HeatmapLayer } = await import('./HeatmapLayer')
@@ -74,12 +93,14 @@ describe('HeatmapLayer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     dispatchRef.current = null
+    displayDispatchRef.current = null
   })
 
   it('does not call L.heatLayer when points is empty', () => {
     render(
       <>
         <DispatchCapture />
+        <DisplayDispatchCapture />
         <HeatmapLayer map={mockMap} />
       </>,
     )
@@ -91,6 +112,7 @@ describe('HeatmapLayer', () => {
     render(
       <>
         <DispatchCapture />
+        <DisplayDispatchCapture />
         <HeatmapLayer map={mockMap} />
       </>,
     )
@@ -110,6 +132,7 @@ describe('HeatmapLayer', () => {
     render(
       <>
         <DispatchCapture />
+        <DisplayDispatchCapture />
         <HeatmapLayer map={mockMap} />
       </>,
     )
@@ -134,12 +157,14 @@ describe('HeatmapLayer', () => {
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
     // Two points in separate grid cells → maxDensity = 1
+    // Default intensity = 0.5 → effectiveMax = 1 * (0.1 + 0.5 * 0.9) = 0.55
+    // Default radius = 20
     expect(mockHeatLayer).toHaveBeenCalledWith(
       [
         [51.5, -0.1, 1],
         [48.8, 2.3, 1],
       ],
-      { max: 1 },
+      { radius: 20, max: 0.55 },
     )
     expect(mockAddTo).toHaveBeenCalledWith(mockMap)
   })
@@ -148,6 +173,7 @@ describe('HeatmapLayer', () => {
     render(
       <>
         <DispatchCapture />
+        <DisplayDispatchCapture />
         <HeatmapLayer map={mockMap} />
       </>,
     )
@@ -182,5 +208,169 @@ describe('HeatmapLayer', () => {
     expect(mockHeatLayer).not.toHaveBeenCalled()
     // The old layer should have been removed
     expect(mockRemoveLayer).toHaveBeenCalled()
+  })
+
+  // ---------------------------------------------------------------------------
+  // effectiveMax formula tests
+  // ---------------------------------------------------------------------------
+
+  it('effectiveMax: intensity=1.0 + maxDensity=100 → effectiveMax=100', () => {
+    render(
+      <>
+        <DispatchCapture />
+        <DisplayDispatchCapture />
+        <HeatmapLayer map={mockMap} />
+      </>,
+    )
+
+    // Seed 100 points in the same cell so maxDensity = 100
+    const points: LocationPoint[] = Array.from({ length: 100 }, () => makePoint(51.5, -0.1))
+
+    act(() => {
+      getDispatch()({ type: 'APPEND_BATCH', payload: points })
+    })
+
+    // Set intensity to 1.0 before going ready
+    act(() => {
+      getDisplayDispatch()({ type: 'SET_INTENSITY', payload: 1.0 })
+    })
+
+    act(() => {
+      getDispatch()({
+        type: 'SET_COMPLETE',
+        payload: {
+          totalCount: 100,
+          minDate: '2024-01-01T00:00:00.000Z',
+          maxDate: '2024-12-31T23:59:59.000Z',
+        },
+      })
+    })
+
+    expect(mockHeatLayer).toHaveBeenCalledOnce()
+    const callArgs = mockHeatLayer.mock.calls[0] as [
+      [number, number, number][],
+      { radius: number; max: number },
+    ]
+    // effectiveMax = 100 * (0.1 + 1.0 * 0.9) = 100 * 1.0 = 100
+    expect(callArgs[1].max).toBe(100)
+  })
+
+  it('effectiveMax: intensity=0.0 + maxDensity=100 → effectiveMax=10', () => {
+    render(
+      <>
+        <DispatchCapture />
+        <DisplayDispatchCapture />
+        <HeatmapLayer map={mockMap} />
+      </>,
+    )
+
+    // Seed 100 points in the same cell so maxDensity = 100
+    const points: LocationPoint[] = Array.from({ length: 100 }, () => makePoint(51.5, -0.1))
+
+    act(() => {
+      getDispatch()({ type: 'APPEND_BATCH', payload: points })
+    })
+
+    // Set intensity to 0.0
+    act(() => {
+      getDisplayDispatch()({ type: 'SET_INTENSITY', payload: 0.0 })
+    })
+
+    act(() => {
+      getDispatch()({
+        type: 'SET_COMPLETE',
+        payload: {
+          totalCount: 100,
+          minDate: '2024-01-01T00:00:00.000Z',
+          maxDate: '2024-12-31T23:59:59.000Z',
+        },
+      })
+    })
+
+    expect(mockHeatLayer).toHaveBeenCalledOnce()
+    const callArgs = mockHeatLayer.mock.calls[0] as [
+      [number, number, number][],
+      { radius: number; max: number },
+    ]
+    // effectiveMax = 100 * (0.1 + 0.0 * 0.9) = 100 * 0.1 = 10
+    expect(callArgs[1].max).toBe(10)
+  })
+
+  it('effectiveMax: intensity=0.5 + maxDensity=100 → effectiveMax=55', () => {
+    render(
+      <>
+        <DispatchCapture />
+        <DisplayDispatchCapture />
+        <HeatmapLayer map={mockMap} />
+      </>,
+    )
+
+    // Seed 100 points in the same cell so maxDensity = 100
+    const points: LocationPoint[] = Array.from({ length: 100 }, () => makePoint(51.5, -0.1))
+
+    act(() => {
+      getDispatch()({ type: 'APPEND_BATCH', payload: points })
+    })
+
+    // Default intensity is 0.5 — no need to set it explicitly
+
+    act(() => {
+      getDispatch()({
+        type: 'SET_COMPLETE',
+        payload: {
+          totalCount: 100,
+          minDate: '2024-01-01T00:00:00.000Z',
+          maxDate: '2024-12-31T23:59:59.000Z',
+        },
+      })
+    })
+
+    expect(mockHeatLayer).toHaveBeenCalledOnce()
+    const callArgs = mockHeatLayer.mock.calls[0] as [
+      [number, number, number][],
+      { radius: number; max: number },
+    ]
+    // effectiveMax = 100 * (0.1 + 0.5 * 0.9) = 100 * 0.55 = 55
+    expect(callArgs[1].max).toBeCloseTo(55, 10)
+  })
+
+  it('radius option updates when SET_RADIUS is dispatched via DisplayContext', () => {
+    render(
+      <>
+        <DispatchCapture />
+        <DisplayDispatchCapture />
+        <HeatmapLayer map={mockMap} />
+      </>,
+    )
+
+    act(() => {
+      getDispatch()({
+        type: 'APPEND_BATCH',
+        payload: [makePoint(51.5, -0.1)],
+      })
+    })
+
+    // Set custom radius before going ready
+    act(() => {
+      getDisplayDispatch()({ type: 'SET_RADIUS', payload: 40 })
+    })
+
+    act(() => {
+      getDispatch()({
+        type: 'SET_COMPLETE',
+        payload: {
+          totalCount: 1,
+          minDate: '2024-01-01T00:00:00.000Z',
+          maxDate: '2024-12-31T23:59:59.000Z',
+        },
+      })
+    })
+
+    expect(mockHeatLayer).toHaveBeenCalledOnce()
+    const callArgs = mockHeatLayer.mock.calls[0] as [
+      [number, number, number][],
+      { radius: number; max: number },
+    ]
+    expect(callArgs[1].radius).toBe(40)
   })
 })
