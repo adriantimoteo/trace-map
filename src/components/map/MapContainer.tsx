@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import { HeatmapLayer } from './HeatmapLayer'
 import { ViewportFilterOverlay } from './ViewportFilterOverlay'
 import { ParseProgressOverlay } from './ParseProgressOverlay'
+import { NoPointsOverlay } from './NoPointsOverlay'
 import { useDataState } from '../../contexts/DataContext'
 import { useFilterState } from '../../contexts/FilterContext'
 import { useMapContext } from '../../contexts/MapContext'
@@ -73,6 +74,7 @@ export function MapContainer() {
       </LeafletMapContainer>
       <ViewportFilterOverlay />
       <ParseProgressOverlay />
+      <NoPointsOverlay />
     </div>
   )
 }
