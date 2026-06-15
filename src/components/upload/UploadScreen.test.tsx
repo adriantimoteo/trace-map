@@ -1,18 +1,15 @@
 import { render, screen } from '../../test/utils'
-import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
-import { useUIDispatch } from '../../contexts/UIContext'
+import { useLocationWorker } from '../../hooks/useLocationWorker'
 import { UploadScreen } from './UploadScreen'
 
-vi.mock('../../contexts/UIContext', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../contexts/UIContext')>()
-  return { ...actual, useUIDispatch: vi.fn() }
-})
+vi.mock('../../hooks/useLocationWorker', () => ({
+  useLocationWorker: vi.fn(),
+}))
 
 describe('UploadScreen', () => {
   beforeEach(() => {
-    const mockDispatch = vi.fn()
-    vi.mocked(useUIDispatch).mockReturnValue(mockDispatch)
+    vi.mocked(useLocationWorker).mockReturnValue({ loadFile: vi.fn() })
   })
 
   it('renders without error', () => {
@@ -34,15 +31,8 @@ describe('UploadScreen', () => {
     expect(screen.getByText('Drop Records.json here, or click to browse')).toBeInTheDocument()
   })
 
-  it('clicking "Skip to app →" dispatches SET_SCREEN action', async () => {
-    const mockDispatch = vi.fn()
-    vi.mocked(useUIDispatch).mockReturnValue(mockDispatch)
-
+  it('does not render a "Skip to app" button', () => {
     render(<UploadScreen />)
-
-    const skipButton = screen.getByRole('button', { name: /skip to app/i })
-    await userEvent.click(skipButton)
-
-    expect(mockDispatch).toHaveBeenCalledWith({ type: 'SET_SCREEN', payload: 'app' })
+    expect(screen.queryByRole('button', { name: /skip to app/i })).not.toBeInTheDocument()
   })
 })
