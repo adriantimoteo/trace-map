@@ -1,12 +1,58 @@
+import { useState, useEffect, useRef } from 'react'
 import { useUIState, useUIDispatch } from '../../contexts/UIContext'
+import { useFilterState, useFilterDispatch } from '../../contexts/FilterContext'
+import { useSortedSpeeds } from '../../hooks/useSortedSpeeds'
+import { countExcludedAtThreshold } from '../../utils/velocityCount'
+
+const VELOCITY_MIN = 5
+const VELOCITY_MAX = 120
+const DEBOUNCE_MS = 300
 
 export function AdvancedOptions() {
   const { advancedOptionsOpen } = useUIState()
-  const dispatch = useUIDispatch()
+  const uiDispatch = useUIDispatch()
+
+  const { velocityThreshold } = useFilterState()
+  const filterDispatch = useFilterDispatch()
+
+  const sortedSpeeds = useSortedSpeeds()
+
+  // Local slider state — tracks the in-drag value separately from committed context value.
+  // This lets us update the display instantly without triggering a full filter pipeline re-run
+  // on every animation frame of the drag.
+  const [localThreshold, setLocalThreshold] = useState(velocityThreshold)
+
+  // Keep local slider in sync if context value changes externally (e.g. on RESET).
+  useEffect(() => {
+    setLocalThreshold(velocityThreshold)
+  }, [velocityThreshold])
+
+  // Debounce ref: holds the pending timer ID for the context dispatch.
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function handleToggle() {
-    dispatch({ type: 'TOGGLE_ADVANCED_OPTIONS' })
+    uiDispatch({ type: 'TOGGLE_ADVANCED_OPTIONS' })
   }
+
+  function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = Number(e.target.value)
+    setLocalThreshold(value)
+
+    // Cancel any pending debounced dispatch.
+    if (debounceRef.current !== null) {
+      clearTimeout(debounceRef.current)
+    }
+
+    // Schedule context update 300 ms after the user stops dragging.
+    debounceRef.current = setTimeout(() => {
+      filterDispatch({ type: 'SET_VELOCITY_THRESHOLD', payload: value })
+      debounceRef.current = null
+    }, DEBOUNCE_MS)
+  }
+
+  // Live exclusion count — computed instantly from the sorted speeds array (O(log n) binary search).
+  const excludedCount = countExcludedAtThreshold(sortedSpeeds, localThreshold)
+  const formattedCount = new Intl.NumberFormat().format(excludedCount)
 
   return (
     <div className="flex flex-col">
@@ -33,8 +79,31 @@ export function AdvancedOptions() {
       </button>
 
       {advancedOptionsOpen && (
-        <div className="mt-2 flex flex-col gap-2 transition-all duration-200">
-          <p className="text-sm text-gray-500">Advanced options coming soon</p>
+        <div className="mt-2 flex flex-col gap-3 transition-all duration-200">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="velocity-threshold-slider"
+                className="text-sm font-medium text-gray-700"
+              >
+                Velocity threshold
+              </label>
+              <span className="text-sm text-gray-600">{localThreshold} km/h</span>
+            </div>
+            <input
+              id="velocity-threshold-slider"
+              type="range"
+              min={VELOCITY_MIN}
+              max={VELOCITY_MAX}
+              step={1}
+              value={localThreshold}
+              onChange={handleSliderChange}
+              className="w-full accent-blue-600"
+            />
+            <p className="text-xs text-gray-500">
+              {formattedCount} {excludedCount === 1 ? 'point' : 'points'} would be excluded
+            </p>
+          </div>
         </div>
       )}
     </div>
