@@ -43,10 +43,10 @@ export function HeatmapLayer({ map }: HeatmapLayerProps) {
         return [lat, lng, (cellCounts.get(key) ?? 1) / localMax]
       })
 
-      // effectiveMax: maps intensity slider [0,1] to [maxDensity*0.1, maxDensity*1.0]
-      // At intensity=1.0 → effectiveMax=maxDensity (only densest cluster reaches hottest colour)
-      // At intensity=0.0 → effectiveMax=maxDensity*0.1 (even sparse areas appear hot)
-      const effectiveMax = maxDensity * (0.1 + intensity * 0.9)
+      // effectiveMax: maps intensity slider [0,1] to [maxDensity*1.0, maxDensity*0.1]
+      // At intensity=1.0 → effectiveMax=maxDensity*0.1 (everything looks hot)
+      // At intensity=0.0 → effectiveMax=maxDensity*1.0 (only the densest cluster is red)
+      const effectiveMax = maxDensity * (1.0 - intensity * 0.9)
 
       const layer = L.heatLayer(heatPoints, { radius, max: effectiveMax })
       layer.addTo(map)
