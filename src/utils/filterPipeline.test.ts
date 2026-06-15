@@ -5,6 +5,7 @@ import {
   applyViewportFilter,
   applyFilters,
   computeMaxDensity,
+  computeLogWeightedBins,
 } from './filterPipeline'
 import type { LocationPoint } from '../types'
 import type { FilterState } from './filterPipeline'
@@ -414,5 +415,77 @@ describe('computeMaxDensity — percentile parameter', () => {
       }
     })
     expect(computeMaxDensity(points, 0.5)).toBe(6)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeLogWeightedBins
+// ---------------------------------------------------------------------------
+
+describe('computeLogWeightedBins', () => {
+  it('returns empty array for empty input', () => {
+    expect(computeLogWeightedBins([])).toEqual([])
+  })
+
+  it('returns one tuple for points in the same bin with log1p weight', () => {
+    // 10 points all in the same 0.001° cell
+    const points = Array.from({ length: 10 }, () => makePoint({ lat: 51.5, lng: -0.1 }))
+    const result = computeLogWeightedBins(points)
+
+    expect(result).toHaveLength(1)
+    const [lat, lng, weight] = result[0]
+
+    // Centroid: cellLat = Math.floor(51.5 / 0.001) = 51500 → (51500 + 0.5) * 0.001 = 51.5005
+    expect(lat).toBeCloseTo(51.5005, 6)
+    // Centroid: cellLng = Math.floor(-0.1 / 0.001) = -100 → (-100 + 0.5) * 0.001 = -0.0995
+    expect(lng).toBeCloseTo(-0.0995, 6)
+    // Weight: log1p(10) ≈ 2.3979
+    expect(weight).toBeCloseTo(Math.log1p(10), 10)
+  })
+
+  it('returns two tuples for points in two different bins', () => {
+    // Bin A: 1 point at lat=51.5, lng=0.0
+    // Bin B: 9 points at lat=52.0, lng=1.0 (clearly different 0.001° cells)
+    const binA = [makePoint({ lat: 51.5, lng: 0.0 })]
+    const binB = Array.from({ length: 9 }, () => makePoint({ lat: 52.0, lng: 1.0 }))
+    const result = computeLogWeightedBins([...binA, ...binB])
+
+    expect(result).toHaveLength(2)
+
+    // Find each bin by its approximate lat centroid
+    const tupleA = result.find(([lat]) => Math.abs(lat - 51.5005) < 0.001)
+    const tupleB = result.find(([lat]) => Math.abs(lat - 52.0005) < 0.001)
+
+    expect(tupleA).toBeDefined()
+    expect(tupleB).toBeDefined()
+
+    if (tupleA !== undefined) {
+      // log1p(1) ≈ 0.693
+      expect(tupleA[2]).toBeCloseTo(Math.log1p(1), 10)
+      expect(tupleA[2]).toBeCloseTo(0.6931471805599453, 6)
+    }
+
+    if (tupleB !== undefined) {
+      // log1p(9) ≈ 2.303
+      expect(tupleB[2]).toBeCloseTo(Math.log1p(9), 10)
+      expect(tupleB[2]).toBeCloseTo(2.302585092994046, 6)
+    }
+  })
+
+  it('log1p(1) ≈ 0.693 and log1p(9) ≈ 2.303 — standard reference values', () => {
+    expect(Math.log1p(1)).toBeCloseTo(0.6931471805599453, 6)
+    expect(Math.log1p(9)).toBeCloseTo(2.302585092994046, 6)
+  })
+
+  it('centroid is (cellIndex + 0.5) * 0.001 for both lat and lng', () => {
+    // Single point at lat=51.0, lng=0.0
+    // cellLat = Math.floor(51.0 / 0.001) = 51000 → centroid = (51000 + 0.5) * 0.001 = 51.0005
+    // cellLng = Math.floor(0.0 / 0.001) = 0 → centroid = (0 + 0.5) * 0.001 = 0.0005
+    const result = computeLogWeightedBins([makePoint({ lat: 51.0, lng: 0.0 })])
+    expect(result).toHaveLength(1)
+    const [lat, lng, weight] = result[0]
+    expect(lat).toBeCloseTo(51.0005, 6)
+    expect(lng).toBeCloseTo(0.0005, 6)
+    expect(weight).toBeCloseTo(Math.log1p(1), 10)
   })
 })

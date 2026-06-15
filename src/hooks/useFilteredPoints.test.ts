@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { useFilteredPoints } from './useFilteredPoints'
 import { useDataDispatch } from '../contexts/DataContext'
 import { useFilterDispatch } from '../contexts/FilterContext'
+import { useDisplayDispatch } from '../contexts/DisplayContext'
 import type { LocationPoint } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -245,5 +246,78 @@ describe('useFilteredPoints', () => {
     // Only the London point should remain
     expect(result.current.filtered.filteredCount).toBe(1)
     expect(result.current.filtered.filteredPoints[0]).toEqual(points[0])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// weightedPoints — P6-02 log-scale density
+// ---------------------------------------------------------------------------
+
+describe('useFilteredPoints — weightedPoints', () => {
+  const points = [
+    makePoint(51.5, -0.1, 1_000_000),
+    makePoint(51.5, -0.1, 2_000_000), // same cell — count 2
+    makePoint(52.0, 1.0, 3_000_000), // different cell — count 1
+  ]
+
+  it('returns weightedPoints: null when logScaleDensity is false (default)', () => {
+    const { result } = renderHook(() => {
+      const dispatch = useDataDispatch()
+      const filtered = useFilteredPoints()
+      return { dispatch, filtered }
+    }, renderOptions)
+
+    seedData(result.current.dispatch, points)
+
+    expect(result.current.filtered.weightedPoints).toBeNull()
+  })
+
+  it('returns weightedPoints: null when logScaleDensity is true but hotspotSmoothing is false', () => {
+    const { result } = renderHook(() => {
+      const dataDispatch = useDataDispatch()
+      const displayDispatch = useDisplayDispatch()
+      const filtered = useFilteredPoints()
+      return { dataDispatch, displayDispatch, filtered }
+    }, renderOptions)
+
+    seedData(result.current.dataDispatch, points)
+
+    // Enable log scale but leave hotspot smoothing OFF
+    act(() => {
+      result.current.displayDispatch({ type: 'TOGGLE_LOG_SCALE_DENSITY' })
+    })
+
+    expect(result.current.filtered.weightedPoints).toBeNull()
+  })
+
+  it('returns non-null weightedPoints when both logScaleDensity and hotspotSmoothing are true', () => {
+    const { result } = renderHook(() => {
+      const dataDispatch = useDataDispatch()
+      const displayDispatch = useDisplayDispatch()
+      const filtered = useFilteredPoints()
+      return { dataDispatch, displayDispatch, filtered }
+    }, renderOptions)
+
+    seedData(result.current.dataDispatch, points)
+
+    act(() => {
+      result.current.displayDispatch({ type: 'TOGGLE_HOTSPOT_SMOOTHING' })
+      result.current.displayDispatch({ type: 'TOGGLE_LOG_SCALE_DENSITY' })
+    })
+
+    const { weightedPoints } = result.current.filtered
+    expect(weightedPoints).not.toBeNull()
+    expect(Array.isArray(weightedPoints)).toBe(true)
+    // 2 distinct cells
+    expect(weightedPoints).toHaveLength(2)
+    // Every tuple must be [number, number, number]
+    if (weightedPoints !== null) {
+      for (const tuple of weightedPoints) {
+        expect(tuple).toHaveLength(3)
+        expect(typeof tuple[0]).toBe('number')
+        expect(typeof tuple[1]).toBe('number')
+        expect(typeof tuple[2]).toBe('number')
+      }
+    }
   })
 })

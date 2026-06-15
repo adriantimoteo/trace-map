@@ -5,6 +5,7 @@ interface DisplayState {
   radius: number
   intensity: number
   hotspotSmoothing: boolean
+  logScaleDensity: boolean
 }
 
 // 2. Action union type
@@ -12,12 +13,14 @@ type DisplayAction =
   | { type: 'SET_RADIUS'; payload: number }
   | { type: 'SET_INTENSITY'; payload: number }
   | { type: 'TOGGLE_HOTSPOT_SMOOTHING' }
+  | { type: 'TOGGLE_LOG_SCALE_DENSITY' }
 
 // 3. Initial state
 const initialState: DisplayState = {
   radius: 20,
   intensity: 0.5,
   hotspotSmoothing: false,
+  logScaleDensity: false,
 }
 
 // 4. Reducer
@@ -29,6 +32,8 @@ function displayReducer(state: DisplayState, action: DisplayAction): DisplayStat
       return { ...state, intensity: Math.min(1, Math.max(0, action.payload)) }
     case 'TOGGLE_HOTSPOT_SMOOTHING':
       return { ...state, hotspotSmoothing: !state.hotspotSmoothing }
+    case 'TOGGLE_LOG_SCALE_DENSITY':
+      return { ...state, logScaleDensity: !state.logScaleDensity }
     default:
       return state
   }
