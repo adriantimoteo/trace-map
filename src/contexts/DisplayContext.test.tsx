@@ -50,6 +50,7 @@ function Consumer() {
       <span data-testid="radius">{state.radius}</span>
       <span data-testid="intensity">{state.intensity}</span>
       <span data-testid="hotspot-smoothing">{String(state.hotspotSmoothing)}</span>
+      <span data-testid="log-scale-density">{String(state.logScaleDensity)}</span>
     </div>
   )
 }
@@ -229,5 +230,44 @@ describe('displayReducer — TOGGLE_HOTSPOT_SMOOTHING', () => {
     })
     expect(screen.getByTestId('radius').textContent).toBe('20')
     expect(screen.getByTestId('intensity').textContent).toBe('0.5')
+  })
+})
+
+describe('DisplayContext — logScaleDensity initial state', () => {
+  it('has default logScaleDensity of false', () => {
+    render(<Consumer />)
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('false')
+  })
+})
+
+describe('displayReducer — TOGGLE_LOG_SCALE_DENSITY', () => {
+  it('toggles logScaleDensity from false to true', () => {
+    renderWithDispatch(<Consumer />)
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('false')
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_LOG_SCALE_DENSITY' })
+    })
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('true')
+  })
+
+  it('toggles logScaleDensity from true back to false (dispatch twice)', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_LOG_SCALE_DENSITY' })
+    })
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('true')
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_LOG_SCALE_DENSITY' })
+    })
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('false')
+  })
+
+  it('does not affect hotspotSmoothing or radius when toggling logScaleDensity', () => {
+    renderWithDispatch(<Consumer />)
+    act(() => {
+      getDispatch()({ type: 'TOGGLE_LOG_SCALE_DENSITY' })
+    })
+    expect(screen.getByTestId('hotspot-smoothing').textContent).toBe('false')
+    expect(screen.getByTestId('radius').textContent).toBe('20')
   })
 })

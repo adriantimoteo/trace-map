@@ -5,12 +5,17 @@ import { HotspotSmoothingToggle } from './HotspotSmoothingToggle'
 import { useDisplayState } from '../../contexts/DisplayContext'
 
 // ---------------------------------------------------------------------------
-// Helper — reads hotspotSmoothing from real DisplayContext and renders it
+// Helpers — reads state from real DisplayContext and renders it
 // ---------------------------------------------------------------------------
 
 function HotspotSmoothingDisplay() {
   const { hotspotSmoothing } = useDisplayState()
   return <div data-testid="hotspot-smoothing">{String(hotspotSmoothing)}</div>
+}
+
+function LogScaleDensityDisplay() {
+  const { logScaleDensity } = useDisplayState()
+  return <div data-testid="log-scale-density">{String(logScaleDensity)}</div>
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +80,72 @@ describe('HotspotSmoothingToggle', () => {
       screen.getByText(
         /caps color scale at 95th percentile density so frequently-visited spots don't drown out everything else/i,
       ),
+    ).toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// P6-02: Nested log-scale density toggle
+// ---------------------------------------------------------------------------
+
+describe('HotspotSmoothingToggle — log-scale density toggle', () => {
+  it('log-scale toggle is disabled when hotspotSmoothing is false (default)', () => {
+    render(<HotspotSmoothingToggle />)
+
+    const logScaleCheckbox = screen.getByRole('checkbox', { name: /compress density curve/i })
+    expect(logScaleCheckbox).toBeDisabled()
+  })
+
+  it('log-scale toggle is enabled when hotspotSmoothing is true', () => {
+    render(<HotspotSmoothingToggle />)
+
+    // Enable hotspot smoothing first
+    act(() => {
+      fireEvent.click(screen.getByRole('checkbox', { name: /smooth hotspots/i }))
+    })
+
+    const logScaleCheckbox = screen.getByRole('checkbox', { name: /compress density curve/i })
+    expect(logScaleCheckbox).not.toBeDisabled()
+  })
+
+  it('clicking log-scale toggle when enabled dispatches TOGGLE_LOG_SCALE_DENSITY', () => {
+    render(
+      <>
+        <LogScaleDensityDisplay />
+        <HotspotSmoothingToggle />
+      </>,
+    )
+
+    // Initial state
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('false')
+
+    // Enable hotspot smoothing so the nested toggle is active
+    act(() => {
+      fireEvent.click(screen.getByRole('checkbox', { name: /smooth hotspots/i }))
+    })
+
+    // Click the log-scale toggle
+    act(() => {
+      fireEvent.click(screen.getByRole('checkbox', { name: /compress density curve/i }))
+    })
+
+    // State should now be true
+    expect(screen.getByTestId('log-scale-density').textContent).toBe('true')
+    expect(screen.getByRole('checkbox', { name: /compress density curve/i })).toBeChecked()
+  })
+
+  it('log-scale toggle is unchecked by default', () => {
+    render(<HotspotSmoothingToggle />)
+
+    const logScaleCheckbox = screen.getByRole('checkbox', { name: /compress density curve/i })
+    expect(logScaleCheckbox).not.toBeChecked()
+  })
+
+  it('renders the log-scale description text', () => {
+    render(<HotspotSmoothingToggle />)
+
+    expect(
+      screen.getByText(/uses log scale so mid-density spots are more visible/i),
     ).toBeInTheDocument()
   })
 })

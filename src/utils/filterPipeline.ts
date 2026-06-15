@@ -97,6 +97,41 @@ export function applyFilters(points: LocationPoint[], filterState: FilterState):
 }
 
 /**
+ * Bins points into 0.001° grid cells and returns log-weighted heat tuples.
+ *
+ * For each non-empty cell, the weight is `Math.log1p(count)`, which compresses
+ * the dynamic range while preserving ordering. The centroid of each cell is
+ * `(cellIndex + 0.5) * 0.001`.
+ *
+ * Returns an empty array for empty input.
+ */
+export function computeLogWeightedBins(points: LocationPoint[]): Array<[number, number, number]> {
+  if (points.length === 0) return []
+
+  const cellCounts = new Map<string, { cellLat: number; cellLng: number; count: number }>()
+
+  for (const point of points) {
+    const cellLat = Math.floor(point.lat / 0.001)
+    const cellLng = Math.floor(point.lng / 0.001)
+    const key = `${String(cellLat)},${String(cellLng)}`
+    const existing = cellCounts.get(key)
+    if (existing !== undefined) {
+      existing.count += 1
+    } else {
+      cellCounts.set(key, { cellLat, cellLng, count: 1 })
+    }
+  }
+
+  const result: Array<[number, number, number]> = []
+  for (const { cellLat, cellLng, count } of cellCounts.values()) {
+    const centroidLat = (cellLat + 0.5) * 0.001
+    const centroidLng = (cellLng + 0.5) * 0.001
+    result.push([centroidLat, centroidLng, Math.log1p(count)])
+  }
+  return result
+}
+
+/**
  * Bins points into 0.001° grid cells and returns a density ceiling.
  *
  * When `percentile === 1.0` (default): returns the absolute max bin count (fast path).
