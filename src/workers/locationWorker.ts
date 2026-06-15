@@ -3,6 +3,22 @@ import { JSONParser } from '@streamparser/json'
 import type { LocationPoint, WorkerInboundMessage, WorkerOutboundMessage } from '../types/index'
 
 // ---------------------------------------------------------------------------
+// Helper: parse a "lat°, lng°" degree-symbol string (Timeline.json format)
+// ---------------------------------------------------------------------------
+
+export function parseDegreesPoint(str: string): { lat: number; lng: number } | null {
+  if (!str || !str.includes('°')) return null
+  // Expected format: "14.5668195°, 121.0167644°"
+  const parts = str.split('°')
+  // parts[0] = lat value, parts[1] = ", lng value", parts[2] = "" (trailing)
+  if (parts.length < 3) return null
+  const lat = parseFloat(parts[0].trim())
+  const lng = parseFloat(parts[1].replace(',', '').trim())
+  if (isNaN(lat) || isNaN(lng)) return null
+  return { lat, lng }
+}
+
+// ---------------------------------------------------------------------------
 // Helper: equirectangular distance approximation (metres)
 // ---------------------------------------------------------------------------
 
@@ -150,7 +166,10 @@ export function runPipeline(
   const PROGRESS_INTERVAL = 5_000
   const BATCH_INTERVAL = 5_000
 
-  const parser = new JSONParser({ paths: ['$.locations.*'], keepStack: false })
+  const parser = new JSONParser({
+    paths: ['$.locations.*', '$.semanticSegments.*.timelinePath.*'],
+    keepStack: false,
+  })
 
   const stage1Input: DedupPoint[] = []
   let totalParsed = 0
@@ -160,38 +179,55 @@ export function runPipeline(
   parser.onValue = ({ value, key: _key, stack }) => {
     if (token.cancelled) return
 
-    // Track raw items received from the locations path filter.
-    // With paths: ['$.locations.*'], stack.length === 2 at the element level:
-    // stack[0] = root object, stack[1] = locations array.
-    if (stack.length === 2) rawLocationsFound++
+    if (stack.length === 2) {
+      // Records.json element: root → locations array → item
+      rawLocationsFound++
 
-    // We only care about individual location objects at stack depth 2.
-    if (stack.length !== 2 || typeof value !== 'object' || value === null) {
+      if (typeof value !== 'object' || value === null) return
+
+      const raw = value as RawLocationObject
+
+      let ts: number
+      try {
+        ts = parseTimestamp(raw)
+      } catch {
+        return // skip malformed points
+      }
+
+      const lat =
+        typeof raw.latitudeE7 === 'number' ? raw.latitudeE7 / 1e7 : (raw.latitudeE7 as number) / 1e7
+      const lng =
+        typeof raw.longitudeE7 === 'number'
+          ? raw.longitudeE7 / 1e7
+          : (raw.longitudeE7 as number) / 1e7
+
+      if (isNaN(lat) || isNaN(lng)) return
+
+      const accuracy = typeof raw.accuracy === 'number' ? raw.accuracy : undefined
+
+      stage1Input.push({ lat, lng, timestamp: ts, accuracy })
+      totalParsed++
+    } else if (stack.length === 4) {
+      // Timeline.json element: root → semanticSegments array → segment obj → timelinePath array → item
+      rawLocationsFound++
+
+      if (typeof value !== 'object' || value === null) return
+
+      const raw = value as { point?: unknown; time?: unknown }
+
+      if (typeof raw.point !== 'string' || typeof raw.time !== 'string') return
+
+      const coords = parseDegreesPoint(raw.point)
+      if (coords === null) return
+
+      const ts = Date.parse(raw.time)
+      if (isNaN(ts)) return
+
+      stage1Input.push({ lat: coords.lat, lng: coords.lng, timestamp: ts, accuracy: undefined })
+      totalParsed++
+    } else {
       return
     }
-
-    const raw = value as RawLocationObject
-
-    let ts: number
-    try {
-      ts = parseTimestamp(raw)
-    } catch {
-      return // skip malformed points
-    }
-
-    const lat =
-      typeof raw.latitudeE7 === 'number' ? raw.latitudeE7 / 1e7 : (raw.latitudeE7 as number) / 1e7
-    const lng =
-      typeof raw.longitudeE7 === 'number'
-        ? raw.longitudeE7 / 1e7
-        : (raw.longitudeE7 as number) / 1e7
-
-    if (isNaN(lat) || isNaN(lng)) return
-
-    const accuracy = typeof raw.accuracy === 'number' ? raw.accuracy : undefined
-
-    stage1Input.push({ lat, lng, timestamp: ts, accuracy })
-    totalParsed++
 
     if (totalParsed % PROGRESS_INTERVAL === 0) {
       emit({

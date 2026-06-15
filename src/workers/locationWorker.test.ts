@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { haversineApprox, parseTimestamp, dedup, strideSample, runPipeline } from './locationWorker'
+import {
+  haversineApprox,
+  parseTimestamp,
+  parseDegreesPoint,
+  dedup,
+  strideSample,
+  runPipeline,
+} from './locationWorker'
 import type { CancelToken } from './locationWorker'
 import type { WorkerOutboundMessage } from '../types'
 
@@ -79,6 +86,51 @@ describe('parseTimestamp', () => {
 
   it('throws when timestamp is not a valid date string', () => {
     expect(() => parseTimestamp({ timestamp: 'not-a-date' })).toThrow()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// parseDegreesPoint
+// ---------------------------------------------------------------------------
+
+describe('parseDegreesPoint', () => {
+  it('parses a positive lat/lng degree string', () => {
+    expect(parseDegreesPoint('14.5668195°, 121.0167644°')).toEqual({
+      lat: 14.5668195,
+      lng: 121.0167644,
+    })
+  })
+
+  it('parses negative latitude coordinate', () => {
+    expect(parseDegreesPoint('-33.8688197°, 151.2092955°')).toEqual({
+      lat: -33.8688197,
+      lng: 151.2092955,
+    })
+  })
+
+  it('parses negative longitude coordinate', () => {
+    expect(parseDegreesPoint('51.5074°, -0.1278°')).toEqual({ lat: 51.5074, lng: -0.1278 })
+  })
+
+  it('returns null for missing degree symbol', () => {
+    expect(parseDegreesPoint('14.5668195, 121.0167644')).toBeNull()
+  })
+
+  it('returns null for empty string', () => {
+    expect(parseDegreesPoint('')).toBeNull()
+  })
+
+  it('returns null for non-numeric latitude', () => {
+    expect(parseDegreesPoint('abc°, 121.0167644°')).toBeNull()
+  })
+
+  it('returns null for non-numeric longitude', () => {
+    expect(parseDegreesPoint('14.5668195°, xyz°')).toBeNull()
+  })
+
+  it('returns null for a string with only one degree symbol', () => {
+    // Only one °, so parts.length < 3 — no valid lng
+    expect(parseDegreesPoint('14.5668195°')).toBeNull()
   })
 })
 
@@ -326,6 +378,101 @@ describe('runPipeline', () => {
     const error = messages.find((m) => m.type === 'ERROR')
     expect(error).toBeDefined()
     expect(messages.find((m) => m.type === 'COMPLETE')).toBeUndefined()
+  })
+
+  it('emits ERROR for a file with neither locations nor semanticSegments', () => {
+    const json = JSON.stringify({ foo: 'bar', unrelated: [1, 2, 3] })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    const error = messages.find((m) => m.type === 'ERROR')
+    expect(error).toBeDefined()
+    expect(messages.find((m) => m.type === 'COMPLETE')).toBeUndefined()
+  })
+
+  it('emits COMPLETE for a Timeline.json buffer with valid timelinePath points', () => {
+    const json = JSON.stringify({
+      semanticSegments: [
+        {
+          startTime: '2023-01-01T00:00:00.000Z',
+          endTime: '2023-01-01T01:00:00.000Z',
+          timelinePath: [
+            { point: '51.5°, -0.1°', time: '2023-01-01T00:00:00.000Z' },
+            { point: '51.51°, -0.1°', time: '2023-01-01T00:10:00.000Z' },
+            { point: '51.52°, -0.1°', time: '2023-01-01T00:20:00.000Z' },
+          ],
+        },
+      ],
+    })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    expect(messages.find((m) => m.type === 'ERROR')).toBeUndefined()
+    const complete = messages.find((m) => m.type === 'COMPLETE')
+    expect(complete).toBeDefined()
+    expect(complete?.type === 'COMPLETE' && complete.payload.totalCount).toBeGreaterThan(0)
+  })
+
+  it('emits BATCH with valid LocationPoint objects for a Timeline.json buffer', () => {
+    const json = JSON.stringify({
+      semanticSegments: [
+        {
+          timelinePath: [
+            { point: '51.5°, -0.1°', time: '2023-06-01T00:00:00.000Z' },
+            { point: '51.51°, -0.1°', time: '2023-06-01T00:10:00.000Z' },
+          ],
+        },
+      ],
+    })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    const batches = messages.filter((m) => m.type === 'BATCH')
+    expect(batches.length).toBeGreaterThan(0)
+    const pt = batches[0].payload.points[0]
+    expect(pt).toHaveProperty('lat')
+    expect(pt).toHaveProperty('lng')
+    expect(pt).toHaveProperty('timestamp')
+    expect(pt).toHaveProperty('speed')
+    expect(pt.lat).toBeCloseTo(51.5, 3)
+    expect(pt.lng).toBeCloseTo(-0.1, 3)
+  })
+
+  it('silently skips segments with only a visit (no timelinePath)', () => {
+    const json = JSON.stringify({
+      semanticSegments: [
+        {
+          visit: { topCandidate: { placeId: 'some-place' } },
+        },
+        {
+          timelinePath: [{ point: '51.5°, -0.1°', time: '2023-06-01T00:00:00.000Z' }],
+        },
+      ],
+    })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    expect(messages.find((m) => m.type === 'ERROR')).toBeUndefined()
+    const complete = messages.find((m) => m.type === 'COMPLETE')
+    expect(complete).toBeDefined()
+    expect(complete?.type === 'COMPLETE' && complete.payload.totalCount).toBe(1)
+  })
+
+  it('Records.json regression: still emits COMPLETE correctly after Timeline.json support added', () => {
+    const json = JSON.stringify({
+      locations: [
+        { timestamp: '2023-03-01T00:00:00.000Z', latitudeE7: 515000000, longitudeE7: -1000000 },
+        { timestamp: '2023-03-01T00:10:00.000Z', latitudeE7: 520000000, longitudeE7: -1000000 },
+        { timestamp: '2023-03-01T00:20:00.000Z', latitudeE7: 525000000, longitudeE7: -1000000 },
+      ],
+    })
+    const token: CancelToken = { cancelled: false }
+    const messages = collectMessages(makeBuffer(json), token)
+
+    expect(messages.find((m) => m.type === 'ERROR')).toBeUndefined()
+    const complete = messages.find((m) => m.type === 'COMPLETE')
+    expect(complete).toBeDefined()
+    expect(complete?.type === 'COMPLETE' && complete.payload.totalCount).toBeGreaterThan(0)
   })
 
   it('emits BATCH messages containing valid LocationPoint objects', () => {
