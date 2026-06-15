@@ -2,13 +2,15 @@ import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet.heat'
 import { useDataState } from '../../contexts/DataContext'
+import { useFilteredPoints } from '../../hooks/useFilteredPoints'
 
 interface HeatmapLayerProps {
   map: L.Map | null
 }
 
 export function HeatmapLayer({ map }: HeatmapLayerProps) {
-  const { points, status } = useDataState()
+  const { status } = useDataState()
+  const { filteredPoints, maxDensity } = useFilteredPoints()
   const heatLayerRef = useRef<L.Layer | null>(null)
 
   useEffect(() => {
@@ -21,13 +23,17 @@ export function HeatmapLayer({ map }: HeatmapLayerProps) {
     }
 
     // Only add heatmap when data is ready and there are points
-    if (status === 'ready' && points.length > 0) {
-      const heatPoints: [number, number, number][] = points.map(({ lat, lng }) => [lat, lng, 1])
-      const layer = L.heatLayer(heatPoints)
+    if (status === 'ready' && filteredPoints.length > 0) {
+      const heatPoints: [number, number, number][] = filteredPoints.map(({ lat, lng }) => [
+        lat,
+        lng,
+        1,
+      ])
+      const layer = L.heatLayer(heatPoints, { max: maxDensity })
       layer.addTo(map)
       heatLayerRef.current = layer
     }
-  }, [map, points, status])
+  }, [map, filteredPoints, maxDensity, status])
 
   return null
 }

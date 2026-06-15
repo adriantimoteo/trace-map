@@ -133,10 +133,14 @@ describe('HeatmapLayer', () => {
     })
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
-    expect(mockHeatLayer).toHaveBeenCalledWith([
-      [51.5, -0.1, 1],
-      [48.8, 2.3, 1],
-    ])
+    // Two points in separate grid cells → maxDensity = 1
+    expect(mockHeatLayer).toHaveBeenCalledWith(
+      [
+        [51.5, -0.1, 1],
+        [48.8, 2.3, 1],
+      ],
+      { max: 1 },
+    )
     expect(mockAddTo).toHaveBeenCalledWith(mockMap)
   })
 
