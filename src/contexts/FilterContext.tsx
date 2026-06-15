@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, type Dispatch, type ReactNode } 
 import type { MapBounds, DateBucket } from '../types'
 
 // 1. State type
-interface FilterState {
+export interface FilterState {
   dateRange: { start: string | null; end: string | null }
   velocityEnabled: boolean
   velocityThreshold: number
