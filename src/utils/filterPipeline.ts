@@ -97,10 +97,16 @@ export function applyFilters(points: LocationPoint[], filterState: FilterState):
 }
 
 /**
- * Bins points into 0.001° grid cells and returns the count of the most-populated cell.
+ * Bins points into 0.001° grid cells and returns a density ceiling.
+ *
+ * When `percentile === 1.0` (default): returns the absolute max bin count (fast path).
+ * When `percentile < 1.0`: returns the value at that percentile of bin counts, sorted
+ * ascending — bins at or above this value saturate to the hottest colour, giving the
+ * bottom (percentile * 100)% of bins the full colour range.
+ *
  * Returns 1 (not 0) for an empty array to avoid Leaflet.heat misbehaviour.
  */
-export function computeMaxDensity(points: LocationPoint[]): number {
+export function computeMaxDensity(points: LocationPoint[], percentile = 1.0): number {
   if (points.length === 0) return 1
 
   const cellCounts = new Map<string, number>()
@@ -112,9 +118,15 @@ export function computeMaxDensity(points: LocationPoint[]): number {
     cellCounts.set(key, (cellCounts.get(key) ?? 0) + 1)
   }
 
-  let max = 1
-  for (const count of cellCounts.values()) {
-    if (count > max) max = count
+  if (percentile === 1.0) {
+    let max = 1
+    for (const count of cellCounts.values()) {
+      if (count > max) max = count
+    }
+    return max
   }
-  return max
+
+  const sortedCounts = Array.from(cellCounts.values()).sort((a, b) => a - b)
+  const index = Math.floor(sortedCounts.length * percentile)
+  return sortedCounts[Math.min(index, sortedCounts.length - 1)]
 }
