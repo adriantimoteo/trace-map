@@ -5,6 +5,7 @@ interface UIState {
   screen: 'upload' | 'app'
   advancedOptionsOpen: boolean
   samplingNoticeDismissed: boolean
+  fileFormat: 'auto' | 'records' | 'semantic'
 }
 
 // 2. Action union type
@@ -12,12 +13,14 @@ type UIAction =
   | { type: 'SET_SCREEN'; payload: 'upload' | 'app' }
   | { type: 'TOGGLE_ADVANCED_OPTIONS' }
   | { type: 'DISMISS_SAMPLING_NOTICE' }
+  | { type: 'SET_FILE_FORMAT'; payload: 'auto' | 'records' | 'semantic' }
 
 // 3. Initial state
 const initialState: UIState = {
   screen: 'upload',
   advancedOptionsOpen: false,
   samplingNoticeDismissed: false,
+  fileFormat: 'auto',
 }
 
 // 4. Reducer
@@ -29,6 +32,8 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return { ...state, advancedOptionsOpen: !state.advancedOptionsOpen }
     case 'DISMISS_SAMPLING_NOTICE':
       return { ...state, samplingNoticeDismissed: true }
+    case 'SET_FILE_FORMAT':
+      return { ...state, fileFormat: action.payload }
     default:
       return state
   }
