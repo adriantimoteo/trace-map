@@ -3,6 +3,7 @@ import { useUIState, useUIDispatch } from '../../contexts/UIContext'
 import { useFilterState, useFilterDispatch } from '../../contexts/FilterContext'
 import { useSortedSpeeds } from '../../hooks/useSortedSpeeds'
 import { countExcludedAtThreshold } from '../../utils/velocityCount'
+import { FormatSelector } from './FormatSelector'
 
 const VELOCITY_MIN = 5
 const VELOCITY_MAX = 120
@@ -104,6 +105,7 @@ export function AdvancedOptions() {
               {formattedCount} {excludedCount === 1 ? 'point' : 'points'} would be excluded
             </p>
           </div>
+          <FormatSelector />
         </div>
       )}
     </div>

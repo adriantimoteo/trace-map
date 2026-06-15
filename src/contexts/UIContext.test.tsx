@@ -18,6 +18,11 @@ function SamplingNoticeDismissedConsumer() {
   return <div data-testid="dismissed">{String(state.samplingNoticeDismissed)}</div>
 }
 
+function FileFormatConsumer() {
+  const state = useUIState()
+  return <div data-testid="file-format">{state.fileFormat}</div>
+}
+
 function UIDispatchCapture({
   onDispatch,
 }: {
@@ -52,6 +57,69 @@ describe('UIContext', () => {
     )
 
     consoleSpy.mockRestore()
+  })
+})
+
+describe('uiReducer — SET_FILE_FORMAT', () => {
+  it('defaults fileFormat to "auto"', () => {
+    render(
+      <>
+        <FileFormatConsumer />
+      </>,
+    )
+
+    expect(screen.getByTestId('file-format').textContent).toBe('auto')
+  })
+
+  it('SET_FILE_FORMAT sets fileFormat to "records"', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <FileFormatConsumer />
+      </>,
+    )
+
+    expect(screen.getByTestId('file-format').textContent).toBe('auto')
+
+    act(() => {
+      dispatch({ type: 'SET_FILE_FORMAT', payload: 'records' })
+    })
+
+    expect(screen.getByTestId('file-format').textContent).toBe('records')
+  })
+
+  it('SET_FILE_FORMAT sets fileFormat to "auto"', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <FileFormatConsumer />
+      </>,
+    )
+
+    // First set to records, then back to auto
+    act(() => {
+      dispatch({ type: 'SET_FILE_FORMAT', payload: 'records' })
+    })
+
+    expect(screen.getByTestId('file-format').textContent).toBe('records')
+
+    act(() => {
+      dispatch({ type: 'SET_FILE_FORMAT', payload: 'auto' })
+    })
+
+    expect(screen.getByTestId('file-format').textContent).toBe('auto')
   })
 })
 
