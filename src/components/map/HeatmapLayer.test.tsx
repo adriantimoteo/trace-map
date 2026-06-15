@@ -157,7 +157,7 @@ describe('HeatmapLayer', () => {
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
     // Two points in separate grid cells → maxDensity = 1
-    // Default intensity = 0.5 → effectiveMax = 1 * (0.1 + 0.5 * 0.9) = 0.55
+    // Default intensity = 0.5 → effectiveMax = 1 * (1.0 - 0.5 * 0.9) = 0.55
     // Default radius = 20
     expect(mockHeatLayer).toHaveBeenCalledWith(
       [
@@ -214,7 +214,7 @@ describe('HeatmapLayer', () => {
   // effectiveMax formula tests
   // ---------------------------------------------------------------------------
 
-  it('effectiveMax: intensity=1.0 + maxDensity=100 → effectiveMax=100', () => {
+  it('effectiveMax: intensity=1.0 + maxDensity=100 → effectiveMax=10', () => {
     render(
       <>
         <DispatchCapture />
@@ -251,11 +251,11 @@ describe('HeatmapLayer', () => {
       [number, number, number][],
       { radius: number; max: number },
     ]
-    // effectiveMax = 100 * (0.1 + 1.0 * 0.9) = 100 * 1.0 = 100
-    expect(callArgs[1].max).toBe(100)
+    // effectiveMax = 100 * (1.0 - 1.0 * 0.9) = 100 * 0.1 = 10
+    expect(callArgs[1].max).toBeCloseTo(10, 10)
   })
 
-  it('effectiveMax: intensity=0.0 + maxDensity=100 → effectiveMax=10', () => {
+  it('effectiveMax: intensity=0.0 + maxDensity=100 → effectiveMax=100', () => {
     render(
       <>
         <DispatchCapture />
@@ -292,8 +292,8 @@ describe('HeatmapLayer', () => {
       [number, number, number][],
       { radius: number; max: number },
     ]
-    // effectiveMax = 100 * (0.1 + 0.0 * 0.9) = 100 * 0.1 = 10
-    expect(callArgs[1].max).toBe(10)
+    // effectiveMax = 100 * (1.0 - 0.0 * 0.9) = 100 * 1.0 = 100
+    expect(callArgs[1].max).toBe(100)
   })
 
   it('effectiveMax: intensity=0.5 + maxDensity=100 → effectiveMax=55', () => {
@@ -330,7 +330,7 @@ describe('HeatmapLayer', () => {
       [number, number, number][],
       { radius: number; max: number },
     ]
-    // effectiveMax = 100 * (0.1 + 0.5 * 0.9) = 100 * 0.55 = 55
+    // effectiveMax = 100 * (1.0 - 0.5 * 0.9) = 100 * 0.55 = 55
     expect(callArgs[1].max).toBeCloseTo(55, 10)
   })
 
