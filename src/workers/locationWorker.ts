@@ -161,13 +161,12 @@ export function runPipeline(
     if (token.cancelled) return
 
     // Track raw items received from the locations path filter.
-    // With paths: ['$.locations.*'], onValue fires only for array elements,
-    // so stack.length === 1 means we are at the element level.
-    if (stack.length === 1) rawLocationsFound++
+    // With paths: ['$.locations.*'], stack.length === 2 at the element level:
+    // stack[0] = root object, stack[1] = locations array.
+    if (stack.length === 2) rawLocationsFound++
 
-    // We only care about individual location objects (depth 2: root.locations[i])
-    // stack.length === 1 means we are at the array element level
-    if (stack.length !== 1 || typeof value !== 'object' || value === null) {
+    // We only care about individual location objects at stack depth 2.
+    if (stack.length !== 2 || typeof value !== 'object' || value === null) {
       return
     }
 
