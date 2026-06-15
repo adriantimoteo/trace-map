@@ -7,9 +7,23 @@ vi.mock('react-leaflet', () => ({
     <div data-testid="leaflet-map">{children}</div>
   ),
   TileLayer: () => <div data-testid="tile-layer" />,
+  useMap: () => ({
+    fitBounds: vi.fn(),
+    removeLayer: vi.fn(),
+    addLayer: vi.fn(),
+  }),
 }))
 
 vi.mock('leaflet/dist/leaflet.css', () => ({}))
+
+vi.mock('leaflet.heat', () => ({}))
+
+vi.mock('leaflet', () => ({
+  default: {
+    heatLayer: vi.fn(() => ({ addTo: vi.fn() })),
+    latLngBounds: vi.fn(() => ({})),
+  },
+}))
 
 describe('MapContainer', () => {
   it('renders without error', () => {
