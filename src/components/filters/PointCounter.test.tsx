@@ -81,4 +81,14 @@ describe('PointCounter', () => {
     makeReady(getDispatch(), 5_000)
     expect(screen.getByText('3,000 of 5,000 points shown')).toBeInTheDocument()
   })
+
+  it('shows both filtered count and total when visibleCount differs from totalCount', () => {
+    const { getDispatch } = renderWithDataDispatch(<PointCounter visibleCount={1_234} />)
+    makeReady(getDispatch(), 9_876)
+    const el = screen.getByText('1,234 of 9,876 points shown')
+    expect(el).toBeInTheDocument()
+    // both numbers appear in the rendered text
+    expect(el.textContent).toContain('1,234')
+    expect(el.textContent).toContain('9,876')
+  })
 })
