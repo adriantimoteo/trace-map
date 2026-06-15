@@ -31,9 +31,44 @@ const initialState: FilterState = {
   dateBucketOverride: null,
 }
 
-// 4. Reducer (stubs — returns unchanged state for all actions)
-function filterReducer(state: FilterState, _action: FilterAction): FilterState {
-  return state
+// 4. Reducer
+const VELOCITY_MIN = 5
+const VELOCITY_MAX = 120
+
+function filterReducer(state: FilterState, action: FilterAction): FilterState {
+  switch (action.type) {
+    case 'SET_DATE_RANGE':
+      return { ...state, dateRange: { start: action.payload.start, end: action.payload.end } }
+
+    case 'SET_VELOCITY_ENABLED':
+      return { ...state, velocityEnabled: action.payload }
+
+    case 'SET_VELOCITY_THRESHOLD':
+      return {
+        ...state,
+        velocityThreshold: Math.min(VELOCITY_MAX, Math.max(VELOCITY_MIN, action.payload)),
+      }
+
+    case 'SET_VIEWPORT_ENABLED':
+      return {
+        ...state,
+        viewportEnabled: action.payload,
+        viewportBounds: action.payload ? state.viewportBounds : null,
+      }
+
+    case 'SET_VIEWPORT_BOUNDS':
+      if (!state.viewportEnabled) return state
+      return { ...state, viewportBounds: action.payload }
+
+    case 'SET_DATE_BUCKET_OVERRIDE':
+      return { ...state, dateBucketOverride: action.payload }
+
+    case 'RESET':
+      return { ...initialState }
+
+    default:
+      return state
+  }
 }
 
 // 5. Contexts — separate state and dispatch for better performance
