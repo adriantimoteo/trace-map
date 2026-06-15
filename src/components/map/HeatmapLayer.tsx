@@ -10,30 +10,41 @@ interface HeatmapLayerProps {
 
 export function HeatmapLayer({ map }: HeatmapLayerProps) {
   const { status } = useDataState()
-  const { filteredPoints, maxDensity } = useFilteredPoints()
+  const { filteredPoints } = useFilteredPoints()
   const heatLayerRef = useRef<L.Layer | null>(null)
 
   useEffect(() => {
     if (map === null) return
 
-    // Remove existing layer whenever points or map change
     if (heatLayerRef.current !== null) {
       map.removeLayer(heatLayerRef.current)
       heatLayerRef.current = null
     }
 
-    // Only add heatmap when data is ready and there are points
     if (status === 'ready' && filteredPoints.length > 0) {
-      const heatPoints: [number, number, number][] = filteredPoints.map(({ lat, lng }) => [
-        lat,
-        lng,
-        1,
-      ])
-      const layer = L.heatLayer(heatPoints, { max: maxDensity })
+      // Count points per 0.001° cell, then normalise each point's intensity to
+      // [0, 1] relative to the densest cell. Using max:1 means the densest visible
+      // area always renders at full colour regardless of zoom level — avoiding the
+      // washed-out appearance that occurs when max is calibrated from cell counts
+      // that span many pixels at high zoom.
+      const cellCounts = new Map<string, number>()
+      for (const p of filteredPoints) {
+        const key = `${Math.floor(p.lat / 0.001)},${Math.floor(p.lng / 0.001)}`
+        cellCounts.set(key, (cellCounts.get(key) ?? 0) + 1)
+      }
+      let localMax = 1
+      for (const count of cellCounts.values()) {
+        if (count > localMax) localMax = count
+      }
+      const heatPoints: [number, number, number][] = filteredPoints.map(({ lat, lng }) => {
+        const key = `${Math.floor(lat / 0.001)},${Math.floor(lng / 0.001)}`
+        return [lat, lng, (cellCounts.get(key) ?? 1) / localMax]
+      })
+      const layer = L.heatLayer(heatPoints, { max: 1 })
       layer.addTo(map)
       heatLayerRef.current = layer
     }
-  }, [map, filteredPoints, maxDensity, status])
+  }, [map, filteredPoints, status])
 
   return null
 }

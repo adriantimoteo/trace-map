@@ -10,7 +10,7 @@ export function FileMetaBadge() {
   const formattedCount = totalCount.toLocaleString()
 
   return (
-    <p className="text-sm text-gray-500 truncate">
+    <p className="text-sm text-gray-500 break-all">
       {fileName}
       {formattedSize !== null && ` · ${formattedSize}`}
       {` · ${formattedCount} points`}
