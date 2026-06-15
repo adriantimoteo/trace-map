@@ -44,17 +44,17 @@ describe('FormatSelector', () => {
     expect(recordsRadio).not.toBeChecked()
   })
 
-  it('"Semantic Location History" radio has the disabled attribute', () => {
+  it('"Semantic Location History" radio is NOT disabled', () => {
     render(<FormatSelector />)
 
     const semanticRadio = screen.getByRole('radio', { name: /semantic location history/i })
-    expect(semanticRadio).toBeDisabled()
+    expect(semanticRadio).not.toBeDisabled()
   })
 
-  it('"coming soon" label is always visible alongside the disabled option', () => {
+  it('"coming soon" label is NOT in the DOM', () => {
     render(<FormatSelector />)
 
-    expect(screen.getByText(/coming soon/i)).toBeInTheDocument()
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
   })
 
   it('selecting "Records.json" dispatches SET_FILE_FORMAT: "records" — verified via real provider', () => {
@@ -105,7 +105,7 @@ describe('FormatSelector', () => {
     expect(screen.getByRole('radio', { name: /records\.json/i })).not.toBeChecked()
   })
 
-  it('"Semantic Location History" radio cannot be selected', () => {
+  it('selecting "Semantic Location History" dispatches SET_FILE_FORMAT: "semantic"', () => {
     render(
       <>
         <FileFormatDisplay />
@@ -113,15 +113,15 @@ describe('FormatSelector', () => {
       </>,
     )
 
-    const semanticRadio = screen.getByRole('radio', { name: /semantic location history/i })
+    // Initial state: auto
+    expect(screen.getByTestId('file-format').textContent).toBe('auto')
 
-    // Attempt to click — should have no effect since it's disabled
     act(() => {
-      fireEvent.click(semanticRadio)
+      fireEvent.click(screen.getByRole('radio', { name: /semantic location history/i }))
     })
 
-    // fileFormat should remain 'auto'
-    expect(screen.getByTestId('file-format').textContent).toBe('auto')
-    expect(semanticRadio).not.toBeChecked()
+    expect(screen.getByTestId('file-format').textContent).toBe('semantic')
+    expect(screen.getByRole('radio', { name: /semantic location history/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /auto-detect/i })).not.toBeChecked()
   })
 })

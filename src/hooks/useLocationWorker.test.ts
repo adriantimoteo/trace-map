@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react'
 import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest'
 import { useLocationWorker } from './useLocationWorker'
 import { useDataDispatch } from '../contexts/DataContext'
-import { useUIDispatch } from '../contexts/UIContext'
+import { useUIDispatch, useUIState } from '../contexts/UIContext'
 
 // ---------------------------------------------------------------------------
 // Mock the context dispatch hooks
@@ -17,6 +17,7 @@ vi.mock('../contexts/DataContext', () => ({
 
 vi.mock('../contexts/UIContext', () => ({
   useUIDispatch: vi.fn(),
+  useUIState: vi.fn(),
 }))
 
 // ---------------------------------------------------------------------------
@@ -89,6 +90,13 @@ beforeEach(() => {
 
   vi.mocked(useDataDispatch).mockReturnValue(mockDataDispatch)
   vi.mocked(useUIDispatch).mockReturnValue(mockUIDispatch)
+  // Default fileFormat is 'auto'
+  vi.mocked(useUIState).mockReturnValue({
+    screen: 'upload',
+    advancedOptionsOpen: false,
+    samplingNoticeDismissed: false,
+    fileFormat: 'auto',
+  })
 
   vi.stubGlobal('Worker', MockWorker)
   vi.stubGlobal('FileReader', MockFileReader)
@@ -192,6 +200,89 @@ describe('useLocationWorker', () => {
       expect(mockWorkerInstances[0].postMessage).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LOAD_FILE' }),
       )
+    })
+  })
+
+  describe('format routing', () => {
+    it('sends format: "auto" to worker when fileFormat is "auto"', () => {
+      vi.mocked(useUIState).mockReturnValue({
+        screen: 'upload',
+        advancedOptionsOpen: false,
+        samplingNoticeDismissed: false,
+        fileFormat: 'auto',
+      })
+      const { result } = renderHook(() => useLocationWorker())
+
+      act(() => {
+        result.current.loadFile(makeFile('Records.json', 'application/json'))
+      })
+      act(() => {
+        mockFileReaderInstances[0].simulateLoad('{"locations":[]}')
+      })
+      act(() => {
+        mockFileReaderInstances[1].simulateLoad(new ArrayBuffer(8))
+      })
+
+      const call = mockWorkerInstances[0].postMessage.mock.calls[0][0] as {
+        type: string
+        payload: { format: string }
+      }
+      expect(call.type).toBe('LOAD_FILE')
+      expect(call.payload.format).toBe('auto')
+    })
+
+    it('sends format: "records" to worker when fileFormat is "records"', () => {
+      vi.mocked(useUIState).mockReturnValue({
+        screen: 'upload',
+        advancedOptionsOpen: false,
+        samplingNoticeDismissed: false,
+        fileFormat: 'records',
+      })
+      const { result } = renderHook(() => useLocationWorker())
+
+      act(() => {
+        result.current.loadFile(makeFile('Records.json', 'application/json'))
+      })
+      act(() => {
+        mockFileReaderInstances[0].simulateLoad('{"locations":[]}')
+      })
+      act(() => {
+        mockFileReaderInstances[1].simulateLoad(new ArrayBuffer(8))
+      })
+
+      const call = mockWorkerInstances[0].postMessage.mock.calls[0][0] as {
+        type: string
+        payload: { format: string }
+      }
+      expect(call.type).toBe('LOAD_FILE')
+      expect(call.payload.format).toBe('records')
+    })
+
+    it('sends format: "semantic" directly to worker when fileFormat is "semantic" (no "auto" fallback)', () => {
+      vi.mocked(useUIState).mockReturnValue({
+        screen: 'upload',
+        advancedOptionsOpen: false,
+        samplingNoticeDismissed: false,
+        fileFormat: 'semantic',
+      })
+      const { result } = renderHook(() => useLocationWorker())
+
+      act(() => {
+        result.current.loadFile(makeFile('Timeline.json', 'application/json'))
+      })
+      act(() => {
+        mockFileReaderInstances[0].simulateLoad('{"semanticSegments":[]}')
+      })
+      act(() => {
+        mockFileReaderInstances[1].simulateLoad(new ArrayBuffer(8))
+      })
+
+      const call = mockWorkerInstances[0].postMessage.mock.calls[0][0] as {
+        type: string
+        payload: { format: string }
+      }
+      expect(call.type).toBe('LOAD_FILE')
+      expect(call.payload.format).toBe('semantic')
     })
   })
 
