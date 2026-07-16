@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+coverage
+nul
+test-*.json
+records-synthetic.json
 
 # Editor directories and files
 .vscode/*
