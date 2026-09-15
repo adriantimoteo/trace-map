@@ -9,6 +9,8 @@ TraceMap turns a Google Takeout location history export into an interactive heat
 
 **Your data never leaves your machine.** There is no backend, no upload, and no network request involving your location data. Parsing, filtering, and rendering all happen client-side, in a Web Worker.
 
+![TraceMap heatmap of Namba, Osaka, filtered to the visible map area](docs/screenshot.jpg)
+
 ## Features
 
 - **Drag-and-drop upload** of a Google Takeout `Records.json` or `Timeline.json` export, parsed off the main thread with live progress reporting
