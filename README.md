@@ -9,6 +9,8 @@ TraceMap turns a Google Takeout location history export into an interactive heat
 
 **Your data never leaves your machine.** There is no backend, no upload, and no network request involving your location data. Parsing, filtering, and rendering all happen client-side, in a Web Worker.
 
+![Uploading image.png…]()
+
 ## Features
 
 - **Drag-and-drop upload** of a Google Takeout `Records.json` or `Timeline.json` export, parsed off the main thread with live progress reporting
