@@ -21,3 +21,9 @@ export function formatFileSize(bytes: number): string {
   const gb = (bytes / GB).toFixed(2)
   return `${gb} GB`
 }
+
+/** Formats a min/max Date pair as "MMM D, YYYY – MMM D, YYYY" */
+export function formatDateRange(minDate: Date, maxDate: Date): string {
+  const opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
+  return `${minDate.toLocaleDateString('en-US', opts)} – ${maxDate.toLocaleDateString('en-US', opts)}`
+}

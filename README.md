@@ -12,7 +12,8 @@ TraceMap turns a Google Takeout location history export into an interactive heat
 - **Format auto-detection** between the legacy Records format and the newer semantic Timeline format
 - **Interactive heatmap** (Leaflet + leaflet.heat) with adjustable radius and intensity, log-scale density weighting, and percentile-based hotspot smoothing so a handful of outlier locations don't wash out the rest of the map
 - **Filtering** by date range (with presets), velocity/speed threshold (to drop GPS noise from vehicle travel), and current map viewport
-- **PNG export** of the current map view, including OSM tile attribution
+- **PNG export** of the current map view, including basemap attribution
+- **Latin-script map labels** worldwide (Esri World Street Map basemap), so place names outside English-speaking regions stay legible
 - **Live point counter** and sampling notice so you always know how much of your data is being rendered
 - Re-upload a new file at any time without reloading the app
 

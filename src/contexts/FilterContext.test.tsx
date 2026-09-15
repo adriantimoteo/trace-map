@@ -128,9 +128,9 @@ function DispatchConsumer() {
 }
 
 describe('FilterContext', () => {
-  it('has default velocityEnabled of false and velocityThreshold of 15', () => {
+  it('has default velocityEnabled of true and velocityThreshold of 15', () => {
     render(<Consumer />)
-    expect(screen.getByTestId('velocityEnabled').textContent).toBe('false')
+    expect(screen.getByTestId('velocityEnabled').textContent).toBe('true')
     expect(screen.getByTestId('velocityThreshold').textContent).toBe('15')
   })
 
@@ -339,7 +339,10 @@ describe('filterReducer — SET_VIEWPORT_BOUNDS', () => {
 
   it('leaves state unchanged when viewportEnabled is false', () => {
     renderWithDispatch(<ViewportConsumer />)
-    // viewportEnabled defaults to false — dispatch bounds without enabling
+    // viewportEnabled defaults to true — explicitly disable, then dispatch bounds
+    act(() => {
+      getDispatch()({ type: 'SET_VIEWPORT_ENABLED', payload: false })
+    })
     act(() => {
       getDispatch()({ type: 'SET_VIEWPORT_BOUNDS', payload: sampleBounds })
     })
@@ -420,9 +423,9 @@ describe('filterReducer — RESET', () => {
 
     expect(screen.getByTestId('date-start').textContent).toBe('__null__')
     expect(screen.getByTestId('date-end').textContent).toBe('__null__')
-    expect(screen.getByTestId('velocityEnabled').textContent).toBe('false')
+    expect(screen.getByTestId('velocityEnabled').textContent).toBe('true')
     expect(screen.getByTestId('velocityThreshold').textContent).toBe('15')
-    expect(screen.getByTestId('viewportEnabled').textContent).toBe('false')
+    expect(screen.getByTestId('viewportEnabled').textContent).toBe('true')
     expect(screen.getByTestId('viewportBounds').textContent).toBe('__null__')
     expect(screen.getByTestId('dateBucketOverride').textContent).toBe('__null__')
   })

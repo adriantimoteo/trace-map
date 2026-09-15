@@ -6,7 +6,7 @@ export function HotspotSmoothingToggle() {
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+      <label className="flex items-center gap-2 text-sm text-gray-100 cursor-pointer select-none">
         <input
           type="checkbox"
           checked={hotspotSmoothing}
@@ -17,13 +17,13 @@ export function HotspotSmoothingToggle() {
         />
         Smooth hotspots
       </label>
-      <p className="text-xs text-gray-500 pl-5">
+      <p className="text-xs text-gray-400 pl-5">
         Caps color scale at 95th percentile density so frequently-visited spots don&apos;t drown out
         everything else.
       </p>
       <div className="pl-5">
         <label
-          className={`flex items-center gap-2 text-sm select-none ${hotspotSmoothing ? 'text-gray-700 cursor-pointer' : 'text-gray-400 cursor-not-allowed'}`}
+          className={`flex items-center gap-2 text-sm select-none ${hotspotSmoothing ? 'text-gray-100 cursor-pointer' : 'text-gray-500 cursor-not-allowed'}`}
         >
           <input
             type="checkbox"

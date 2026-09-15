@@ -22,8 +22,8 @@ function DataController({
 const samplePoint: LocationPoint = {
   lat: 51.5,
   lng: -0.1,
-  timestamp: new Date('2024-01-01T12:00:00Z'),
-  accuracyMeters: 10,
+  timestamp: new Date('2024-01-01T12:00:00Z').getTime(),
+  speed: null,
 }
 
 // ---------------------------------------------------------------------------

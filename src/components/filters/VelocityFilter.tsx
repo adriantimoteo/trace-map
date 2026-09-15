@@ -1,46 +1,26 @@
 import { useFilterState, useFilterDispatch } from '../../contexts/FilterContext'
+import { InfoTooltip } from '../common/InfoTooltip'
+import { Switch } from '../common/Switch'
+
+const LABEL = 'Show In-Transit Points'
 
 export function VelocityFilter() {
-  const { velocityEnabled, velocityThreshold } = useFilterState()
+  const { velocityEnabled } = useFilterState()
   const dispatch = useFilterDispatch()
 
-  function handleChange(enabled: boolean) {
-    dispatch({ type: 'SET_VELOCITY_ENABLED', payload: enabled })
+  // velocityEnabled means the filter is ACTIVE (fast points are excluded),
+  // so the switch — which reads as "show them" — is the inverse of that.
+  const showInTransit = !velocityEnabled
+
+  function handleChange(checked: boolean) {
+    dispatch({ type: 'SET_VELOCITY_ENABLED', payload: !checked })
   }
 
-  const onLabel = 'On — ' + String(velocityThreshold) + ' km/h'
-
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">Velocity</h3>
-      <div className="flex flex-col gap-1">
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name="velocity-filter"
-            value="off"
-            checked={!velocityEnabled}
-            onChange={() => {
-              handleChange(false)
-            }}
-            className="accent-blue-600"
-          />
-          Off
-        </label>
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name="velocity-filter"
-            value="on"
-            checked={velocityEnabled}
-            onChange={() => {
-              handleChange(true)
-            }}
-            className="accent-blue-600"
-          />
-          {onLabel}
-        </label>
-      </div>
+    <div className="flex items-center gap-2">
+      <Switch checked={showInTransit} onChange={handleChange} ariaLabel={LABEL} />
+      <span className="text-sm text-gray-100">{LABEL}</span>
+      <InfoTooltip text="In-transit points are GPS pings recorded while moving fast, e.g. driving or transit. Off by default to keep the heatmap focused on places you spent time, not routes you passed through." />
     </div>
   )
 }

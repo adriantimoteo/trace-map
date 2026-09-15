@@ -150,10 +150,10 @@ describe('drawAttribution', () => {
     expect(ctx.fillRect).toHaveBeenCalledOnce()
   })
 
-  it('calls fillText with the OSM attribution string', () => {
+  it('calls fillText with the basemap attribution string', () => {
     drawAttribution(ctx as unknown as CanvasRenderingContext2D, 800, 600)
     expect(ctx.fillText).toHaveBeenCalledWith(
-      '© OpenStreetMap contributors',
+      '© Esri, © OpenStreetMap contributors',
       expect.any(Number),
       expect.any(Number),
     )

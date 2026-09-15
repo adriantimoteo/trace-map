@@ -22,7 +22,9 @@ vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="leaflet-map">{children}</div>
   ),
-  TileLayer: () => <div data-testid="tile-layer" />,
+  TileLayer: ({ url, attribution }: { url: string; attribution: string }) => (
+    <div data-testid="tile-layer" data-url={url} data-attribution={attribution} />
+  ),
   useMap: () => mockMap,
 }))
 
@@ -46,5 +48,12 @@ describe('MapContainer', () => {
   it('renders the tile layer', () => {
     render(<MapContainer />)
     expect(screen.getByTestId('tile-layer')).toBeInTheDocument()
+  })
+
+  it('uses a tile source that renders labels in Latin script (Esri World Street Map)', () => {
+    render(<MapContainer />)
+    const tileLayer = screen.getByTestId('tile-layer')
+    expect(tileLayer.dataset.url).toContain('server.arcgisonline.com')
+    expect(tileLayer.dataset.attribution).toContain('Esri')
   })
 })

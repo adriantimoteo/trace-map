@@ -112,4 +112,25 @@ describe('FileMetaBadge', () => {
     })
     expect(screen.getByText(/912,440 points/)).toBeInTheDocument()
   })
+
+  it('displays the min/max date range when status is ready', () => {
+    const { getDispatch } = renderWithDataDispatch()
+    act(() => {
+      getDispatch()({
+        type: 'SET_FILE_META',
+        payload: { fileName: 'records.json', fileSize: 1_048_576 },
+      })
+    })
+    act(() => {
+      getDispatch()({
+        type: 'SET_COMPLETE',
+        payload: {
+          totalCount: 100,
+          minDate: '2023-01-01T12:00:00.000Z',
+          maxDate: '2024-06-15T12:00:00.000Z',
+        },
+      })
+    })
+    expect(screen.getByText(/Jan 1, 2023 – Jun 15, 2024/)).toBeInTheDocument()
+  })
 })

@@ -100,18 +100,18 @@ export function drawDateLabel(
 }
 
 /**
- * Draws the OSM attribution label in the bottom-right corner of the canvas.
+ * Draws the basemap attribution label in the bottom-right corner of the canvas.
  *
  * This is drawn programmatically (not captured from the DOM) because
  * html2canvas reliably misses overlapping elements. This always satisfies
- * the OSM licence requirement.
+ * the Esri/OSM licence requirements.
  */
 export function drawAttribution(
   ctx: CanvasRenderingContext2D,
   canvasWidth: number,
   canvasHeight: number,
 ): void {
-  const text = '© OpenStreetMap contributors'
+  const text = '© Esri, © OpenStreetMap contributors'
 
   ctx.save()
   ctx.font = '11px sans-serif'

@@ -1,5 +1,6 @@
 import { useFilterState, useFilterDispatch } from '../../contexts/FilterContext'
 import { useMapContext } from '../../contexts/MapContext'
+import { InfoTooltip } from '../common/InfoTooltip'
 
 /**
  * Checkbox that toggles the viewport (map-bounds) filter.
@@ -35,8 +36,11 @@ export function ViewportFilter() {
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">Viewport</h3>
-      <label className="flex cursor-pointer items-center gap-2 text-sm">
+      <div className="flex items-center gap-1.5">
+        <h3 className="text-sm font-medium text-gray-200">Viewport</h3>
+        <InfoTooltip text="Only shows points within the map's current visible area. Updates automatically as you pan and zoom." />
+      </div>
+      <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-100">
         <input
           type="checkbox"
           checked={viewportEnabled}

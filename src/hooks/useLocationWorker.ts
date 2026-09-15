@@ -1,6 +1,8 @@
 import { useRef, useCallback } from 'react'
 import { useDataDispatch } from '../contexts/DataContext'
+import { useFilterDispatch } from '../contexts/FilterContext'
 import { useUIDispatch, useUIState } from '../contexts/UIContext'
+import { toISODate } from '../utils/dateRangeUtils'
 import type { WorkerOutboundMessage } from '../types'
 
 const DEDUP_DISTANCE = 50 // metres
@@ -12,6 +14,7 @@ const DEDUP_TIME = 60_000 // ms
  */
 export function useLocationWorker(): { loadFile: (file: File) => void } {
   const dataDispatch = useDataDispatch()
+  const filterDispatch = useFilterDispatch()
   const uiDispatch = useUIDispatch()
   const { fileFormat } = useUIState()
   const workerRef = useRef<Worker | null>(null)
@@ -102,6 +105,13 @@ export function useLocationWorker(): { loadFile: (file: File) => void } {
                   maxDate: msg.payload.maxDate,
                 },
               })
+              filterDispatch({
+                type: 'SET_DATE_RANGE',
+                payload: {
+                  start: toISODate(new Date(msg.payload.minDate)),
+                  end: toISODate(new Date(msg.payload.maxDate)),
+                },
+              })
               uiDispatch({ type: 'SET_SCREEN', payload: 'app' })
               worker.terminate()
               workerRef.current = null
@@ -153,7 +163,7 @@ export function useLocationWorker(): { loadFile: (file: File) => void } {
 
       reader.readAsText(slice)
     },
-    [dataDispatch, uiDispatch, fileFormat],
+    [dataDispatch, filterDispatch, uiDispatch, fileFormat],
   )
 
   return { loadFile }

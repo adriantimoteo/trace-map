@@ -5,6 +5,7 @@ import { useSortedSpeeds } from '../../hooks/useSortedSpeeds'
 import { countExcludedAtThreshold } from '../../utils/velocityCount'
 import { FormatSelector } from './FormatSelector'
 import { HotspotSmoothingToggle } from './HotspotSmoothingToggle'
+import { ViewportFilter } from './ViewportFilter'
 
 const VELOCITY_MIN = 5
 const VELOCITY_MAX = 120
@@ -61,7 +62,7 @@ export function AdvancedOptions() {
       <button
         type="button"
         onClick={handleToggle}
-        className="flex items-center justify-between gap-2 py-1 text-sm font-medium text-gray-700 hover:text-gray-900"
+        className="flex items-center justify-between gap-2 py-1 text-sm font-medium text-gray-200 hover:text-white"
         aria-expanded={advancedOptionsOpen}
       >
         <span>Advanced Options</span>
@@ -86,11 +87,11 @@ export function AdvancedOptions() {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="velocity-threshold-slider"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-gray-200"
               >
                 Velocity threshold
               </label>
-              <span className="text-sm text-gray-600">{localThreshold} km/h</span>
+              <span className="text-sm text-gray-300">{localThreshold} km/h</span>
             </div>
             <input
               id="velocity-threshold-slider"
@@ -102,10 +103,11 @@ export function AdvancedOptions() {
               onChange={handleSliderChange}
               className="w-full accent-blue-600"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               {formattedCount} {excludedCount === 1 ? 'point' : 'points'} would be excluded
             </p>
           </div>
+          <ViewportFilter />
           <FormatSelector />
           <HotspotSmoothingToggle />
         </div>

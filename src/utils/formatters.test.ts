@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatFileSize } from './formatters'
+import { formatFileSize, formatDateRange } from './formatters'
 
 describe('formatFileSize', () => {
   it('formats 0 bytes as "0 KB"', () => {
@@ -24,5 +24,18 @@ describe('formatFileSize', () => {
 
   it('formats 2_400_000_000 bytes as ~"2.24 GB"', () => {
     expect(formatFileSize(2_400_000_000)).toBe('2.24 GB')
+  })
+})
+
+describe('formatDateRange', () => {
+  it('formats a min/max Date pair as "MMM D, YYYY – MMM D, YYYY"', () => {
+    const min = new Date(2023, 0, 1) // Jan 1, 2023 (local)
+    const max = new Date(2024, 11, 31) // Dec 31, 2024 (local)
+    expect(formatDateRange(min, max)).toBe('Jan 1, 2023 – Dec 31, 2024')
+  })
+
+  it('formats a same-day range with both dates equal', () => {
+    const day = new Date(2023, 5, 15) // Jun 15, 2023 (local)
+    expect(formatDateRange(day, day)).toBe('Jun 15, 2023 – Jun 15, 2023')
   })
 })

@@ -3,7 +3,6 @@ import { SamplingNotice } from '../common/SamplingNotice'
 import { PointCounter } from './PointCounter'
 import { DateRangeFilter } from './DateRangeFilter'
 import { VelocityFilter } from './VelocityFilter'
-import { ViewportFilter } from './ViewportFilter'
 import { AdvancedOptions } from './AdvancedOptions'
 import { DisplayControls } from './DisplayControls'
 import { useFilteredPoints } from '../../hooks/useFilteredPoints'
@@ -13,14 +12,12 @@ export function FilterPanel() {
 
   return (
     <aside className="flex flex-col gap-4 p-4">
-      <h2 className="text-base font-semibold">Filters</h2>
+      <h2 className="text-base font-semibold text-gray-100">Filters</h2>
       <FileMetaBadge />
 
       <DateRangeFilter />
 
       <VelocityFilter />
-
-      <ViewportFilter />
 
       <DisplayControls />
 

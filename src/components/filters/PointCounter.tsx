@@ -14,7 +14,7 @@ export function PointCounter({ visibleCount }: PointCounterProps) {
   const formattedTotal = totalCount.toLocaleString()
 
   return (
-    <p className="text-sm text-gray-600">
+    <p className="text-sm text-gray-300">
       {formattedShown} of {formattedTotal} points shown
     </p>
   )

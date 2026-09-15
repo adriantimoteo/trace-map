@@ -24,9 +24,9 @@ type FilterAction =
 // 3. Initial state
 const initialState: FilterState = {
   dateRange: { start: null, end: null },
-  velocityEnabled: false,
+  velocityEnabled: true,
   velocityThreshold: 15,
-  viewportEnabled: false,
+  viewportEnabled: true,
   viewportBounds: null,
   dateBucketOverride: null,
 }

@@ -10,9 +10,9 @@ export function FormatSelector() {
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-sm font-medium text-gray-700">File format</span>
+      <span className="text-sm font-medium text-gray-200">File format</span>
       <div className="flex flex-col gap-1">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-gray-100">
           <input
             type="radio"
             name="file-format"
@@ -24,7 +24,7 @@ export function FormatSelector() {
           />
           Auto-detect
         </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-gray-100">
           <input
             type="radio"
             name="file-format"
@@ -36,7 +36,7 @@ export function FormatSelector() {
           />
           Records.json
         </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-gray-100">
           <input
             type="radio"
             name="file-format"

@@ -1,14 +1,6 @@
 import { useDataState } from '../../contexts/DataContext'
 import { useFilterState, useFilterDispatch } from '../../contexts/FilterContext'
-import { isPresetAvailable } from '../../utils/dateRangeUtils'
-
-/** Format a Date to "YYYY-MM-DD" for ISO date strings used by FilterContext */
-function toISODate(date: Date): string {
-  const y = String(date.getFullYear())
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
+import { isPresetAvailable, toISODate } from '../../utils/dateRangeUtils'
 
 /** Subtract `months` calendar months from `date` */
 function subtractMonths(date: Date, months: number): Date {
@@ -66,12 +58,12 @@ export function DateRangeFilter() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-medium text-gray-700">Date Range</h3>
+      <h3 className="text-sm font-medium text-gray-200">Date Range</h3>
 
       {/* Date inputs */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-1">
-          <label htmlFor="date-start" className="text-xs text-gray-500">
+          <label htmlFor="date-start" className="text-xs text-gray-400">
             Start
           </label>
           <input
@@ -79,11 +71,11 @@ export function DateRangeFilter() {
             type="date"
             value={dateRange.start ?? ''}
             onChange={handleStartChange}
-            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="date-end" className="text-xs text-gray-500">
+          <label htmlFor="date-end" className="text-xs text-gray-400">
             End
           </label>
           <input
@@ -91,7 +83,7 @@ export function DateRangeFilter() {
             type="date"
             value={dateRange.end ?? ''}
             onChange={handleEndChange}
-            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
           />
         </div>
       </div>

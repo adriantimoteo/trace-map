@@ -39,8 +39,23 @@ function DisableViewport() {
 // ---------------------------------------------------------------------------
 
 describe('ViewportFilterOverlay', () => {
-  it('does not render the label when viewportEnabled is false (default)', () => {
+  it('renders the label by default (viewportEnabled defaults to true)', () => {
     render(<ViewportFilterOverlay />)
+    expect(screen.getByText('Filtered to visible area')).toBeInTheDocument()
+  })
+
+  it('does not render the label when viewportEnabled is false', () => {
+    render(
+      <>
+        <DisableViewport />
+        <ViewportFilterOverlay />
+      </>,
+    )
+
+    act(() => {
+      screen.getByRole('button', { name: 'disable' }).click()
+    })
+
     expect(screen.queryByText('Filtered to visible area')).not.toBeInTheDocument()
   })
 

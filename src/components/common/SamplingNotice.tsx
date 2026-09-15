@@ -14,7 +14,9 @@ export function SamplingNotice() {
       <button
         aria-label="Dismiss sampling notice"
         className="shrink-0 font-bold leading-none"
-        onClick={() => { dispatch({ type: 'DISMISS_SAMPLING_NOTICE' }) }}
+        onClick={() => {
+          dispatch({ type: 'DISMISS_SAMPLING_NOTICE' })
+        }}
       >
         ×
       </button>

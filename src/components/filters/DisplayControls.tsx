@@ -21,8 +21,8 @@ export function DisplayControls() {
       {/* Radius slider */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-700">Radius</h3>
-          <span className="text-xs text-gray-500">{radius}px</span>
+          <h3 className="text-sm font-medium text-gray-200">Radius</h3>
+          <span className="text-xs text-gray-400">{radius}px</span>
         </div>
         <input
           type="range"
@@ -38,7 +38,7 @@ export function DisplayControls() {
 
       {/* Intensity slider */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-gray-700">Intensity</h3>
+        <h3 className="text-sm font-medium text-gray-200">Intensity</h3>
         <input
           type="range"
           min={0}

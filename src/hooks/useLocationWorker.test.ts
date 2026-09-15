@@ -2,17 +2,24 @@ import { renderHook, act } from '@testing-library/react'
 import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest'
 import { useLocationWorker } from './useLocationWorker'
 import { useDataDispatch } from '../contexts/DataContext'
+import { useFilterDispatch } from '../contexts/FilterContext'
 import { useUIDispatch, useUIState } from '../contexts/UIContext'
+import { toISODate } from '../utils/dateRangeUtils'
 
 // ---------------------------------------------------------------------------
 // Mock the context dispatch hooks
 // ---------------------------------------------------------------------------
 
 const mockDataDispatch = vi.fn()
+const mockFilterDispatch = vi.fn()
 const mockUIDispatch = vi.fn()
 
 vi.mock('../contexts/DataContext', () => ({
   useDataDispatch: vi.fn(),
+}))
+
+vi.mock('../contexts/FilterContext', () => ({
+  useFilterDispatch: vi.fn(),
 }))
 
 vi.mock('../contexts/UIContext', () => ({
@@ -89,6 +96,7 @@ beforeEach(() => {
   mockFileReaderInstances.length = 0
 
   vi.mocked(useDataDispatch).mockReturnValue(mockDataDispatch)
+  vi.mocked(useFilterDispatch).mockReturnValue(mockFilterDispatch)
   vi.mocked(useUIDispatch).mockReturnValue(mockUIDispatch)
   // Default fileFormat is 'auto'
   vi.mocked(useUIState).mockReturnValue({
@@ -301,6 +309,7 @@ describe('useLocationWorker', () => {
       })
 
       mockDataDispatch.mockClear()
+      mockFilterDispatch.mockClear()
       mockUIDispatch.mockClear()
 
       act(() => {
@@ -320,6 +329,13 @@ describe('useLocationWorker', () => {
           totalCount: 42,
           minDate: '2020-01-01T00:00:00Z',
           maxDate: '2020-12-31T00:00:00Z',
+        },
+      })
+      expect(mockFilterDispatch).toHaveBeenCalledWith({
+        type: 'SET_DATE_RANGE',
+        payload: {
+          start: toISODate(new Date('2020-01-01T00:00:00Z')),
+          end: toISODate(new Date('2020-12-31T00:00:00Z')),
         },
       })
       expect(mockUIDispatch).toHaveBeenCalledWith({ type: 'SET_SCREEN', payload: 'app' })
