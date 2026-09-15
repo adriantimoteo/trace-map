@@ -16,6 +16,9 @@ nul
 test-*.json
 records-synthetic.json
 
+# Claude Code local overrides (personal, machine-specific)
+.claude/settings.local.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

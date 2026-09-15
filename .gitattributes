@@ -1,0 +1,10 @@
+# Normalize all text files to LF in the repo and on checkout,
+# regardless of platform or local core.autocrlf setting.
+* text=auto eol=lf
+
+# Diff/merge these as binary, not text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

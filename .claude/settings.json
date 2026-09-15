@@ -1,0 +1,52 @@
+{
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Merge a reviewed ticket branch into main with git merge --no-ff as part of the /implement-phase lead agent workflow",
+      "Push to origin main after merging a reviewed ticket branch as part of the /implement-phase lead agent workflow"
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npm ci)",
+      "Bash(npm run build)",
+      "Bash(npm run dev)",
+      "Bash(npm run preview)",
+      "Bash(npm run test)",
+      "Bash(npm run test:coverage)",
+      "Bash(npm run lint)",
+      "Bash(npm run type-check)",
+      "Bash(npm run format)",
+      "Bash(npm run format:check)",
+      "Bash(npm run generate-data *)",
+      "Bash(npm run audit:deps)",
+      "Bash(npm test *)",
+      "Bash(git checkout *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash)",
+      "Bash(git stash *)",
+      "Bash(cd * && npm run format*)",
+      "Bash(cd * && npm run lint*)",
+      "Bash(cd * && npm run type-check*)",
+      "Bash(cd * && npm test*)",
+      "Bash(cd * && npm install*)",
+      "Bash(cd * && git add *)",
+      "Bash(cd * && git commit *)",
+      "Bash(cd * && git push *)",
+      "Bash(cd * && git checkout *)",
+      "Bash(mkdir *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\johnadrian\\Vault\\20 - Projects\\trace-map"
+    ]
+  }
+}
