@@ -10,7 +10,7 @@ on:
 
 jobs:
   ci:
-    name: Install → Lint → Type-check → Test → Dependency Audit
+    name: Install → Lint → Type-check → Test → Build → Dependency Audit
     runs-on: ubuntu-latest
 
     steps:
@@ -34,6 +34,9 @@ jobs:
 
       - name: Test
         run: npm test -- --run
+
+      - name: Build
+        run: npm run build
 
       - name: Dependency audit
         run: npm run audit:deps

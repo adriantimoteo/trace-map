@@ -73,7 +73,6 @@ const OVERLAY_BG = 'rgba(0, 0, 0, 0.55)'
 export function drawDateLabel(
   ctx: CanvasRenderingContext2D,
   text: string,
-  canvasWidth: number,
   canvasHeight: number,
 ): void {
   ctx.save()

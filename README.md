@@ -1,6 +1,9 @@
 # TraceMap
 
 [![CI](https://github.com/adriantimoteo/trace-map/actions/workflows/ci.yml/badge.svg)](https://github.com/adriantimoteo/trace-map/actions/workflows/ci.yml)
+[![Deploy](https://github.com/adriantimoteo/trace-map/actions/workflows/deploy.yml/badge.svg)](https://github.com/adriantimoteo/trace-map/actions/workflows/deploy.yml)
+
+**[Try it live](https://adriantimoteo.github.io/trace-map/)** — no install needed.
 
 TraceMap turns a Google Takeout location history export into an interactive heatmap you can explore, filter, and export — entirely in your browser.
 
@@ -24,7 +27,18 @@ npm install
 npm run dev
 ```
 
-Then open the printed local URL and drop in a `Records.json` (or `Timeline.json`) file from your [Google Takeout](https://takeout.google.com/) location history export.
+Then open the printed local URL and drop in a `Records.json` or `Timeline.json` file from your Google location history export (see below).
+
+### Exporting your Google Timeline data
+
+Google has changed how Timeline (formerly "Location History") is exported more than once, so which path applies depends on your account and device:
+
+- **Via Google Takeout** (older accounts, or Timeline still backed up to your Google Account): go to [takeout.google.com](https://takeout.google.com/), click **Deselect all**, then select **Location History (Timeline)**, and export. Your download contains a `Records.json` file.
+- **Via the Google Maps app** (Timeline stored on-device, the current default for most Android users): open the Google Maps app → your profile picture → **Your Timeline** → **⋮** menu → **Location and privacy settings** → **Export Timeline data**. This produces a `Timeline.json` file.
+
+See Google's [Timeline export/delete help article](https://support.google.com/maps/answer/14169818) if the exact menu differs from the above — Google updates this UI periodically.
+
+TraceMap auto-detects which format you drop in, so either file works without configuration.
 
 ### Don't have an export handy?
 
@@ -57,6 +71,10 @@ React 18 + TypeScript, Vite, Tailwind CSS, Leaflet/react-leaflet with leaflet.he
 
 TraceMap is designed to run entirely client-side. Location data is read from the file you select, processed in your browser, and never transmitted anywhere. Closing the tab discards it.
 
+## Deployment
+
+Pushes to `main` build and deploy automatically to GitHub Pages via `.github/workflows/deploy.yml`. To host your own fork: in the repo's **Settings → Pages**, set **Source** to **GitHub Actions** — the workflow handles the rest. The build uses a relative `base` path (`vite.config.ts`) so it works unmodified at any GitHub Pages subpath.
+
 ## Status
 
-TraceMap is under active development. The current focus is the v1 desktop experience (upload → filter → export); a publicly hosted v2 with the same privacy guarantees is planned as a follow-on.
+TraceMap is under active development. The v1 desktop experience (upload → filter → export) is live and publicly hosted; a dedicated onboarding flow and further v2 polish are planned as a follow-on.

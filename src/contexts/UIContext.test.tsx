@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { act } from 'react'
 import { render, screen } from '../test/utils'
+import { render as renderUnwrapped } from '@testing-library/react'
 import { useUIState, useUIDispatch } from './UIContext'
 
 function Consumer() {
@@ -42,7 +43,7 @@ describe('UIContext', () => {
   it('throws a descriptive error when used outside UIProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<Consumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<Consumer />)).toThrow(
       'useUIState must be used within a UIProvider',
     )
 
@@ -52,7 +53,7 @@ describe('UIContext', () => {
   it('useUIDispatch throws a descriptive error when used outside UIProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<DispatchConsumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<DispatchConsumer />)).toThrow(
       'useUIDispatch must be used within a UIProvider',
     )
 

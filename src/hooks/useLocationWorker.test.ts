@@ -172,7 +172,7 @@ describe('useLocationWorker', () => {
       })
 
       type DispatchCall = { type: string; payload?: unknown }
-      const calls = mockDataDispatch.mock.calls.map((c: [DispatchCall]) => c[0])
+      const calls = mockDataDispatch.mock.calls.map((c: DispatchCall[]) => c[0])
       const resetIdx = calls.findIndex((c) => c.type === 'RESET')
       const metaIdx = calls.findIndex((c) => c.type === 'SET_FILE_META')
       const statusIdx = calls.findIndex((c) => c.type === 'SET_STATUS')

@@ -8,6 +8,5 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
     exclude: ['node_modules', 'dist', '.claude'],
-    environmentMatchGlobs: [['scripts/**', 'node']],
   },
 })

@@ -159,7 +159,7 @@ describe('HeatmapLayer', () => {
     // Two points in separate grid cells → maxDensity = 1
     // Default intensity = 0.5 → effectiveMax = 10^-0.5 ≈ 0.31623
     // Default radius = 20
-    const callArgs = mockHeatLayer.mock.calls[0] as [
+    const callArgs = mockHeatLayer.mock.calls[0] as unknown as [
       [number, number, number][],
       { radius: number; max: number },
     ]
@@ -250,7 +250,7 @@ describe('HeatmapLayer', () => {
     })
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
-    const callArgs = mockHeatLayer.mock.calls[0] as [
+    const callArgs = mockHeatLayer.mock.calls[0] as unknown as [
       [number, number, number][],
       { radius: number; max: number },
     ]
@@ -293,7 +293,7 @@ describe('HeatmapLayer', () => {
     })
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
-    const callArgs = mockHeatLayer.mock.calls[0] as [
+    const callArgs = mockHeatLayer.mock.calls[0] as unknown as [
       [number, number, number][],
       { radius: number; max: number },
     ]
@@ -331,7 +331,7 @@ describe('HeatmapLayer', () => {
     })
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
-    const callArgs = mockHeatLayer.mock.calls[0] as [
+    const callArgs = mockHeatLayer.mock.calls[0] as unknown as [
       [number, number, number][],
       { radius: number; max: number },
     ]
@@ -372,7 +372,7 @@ describe('HeatmapLayer', () => {
     })
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
-    const callArgs = mockHeatLayer.mock.calls[0] as [
+    const callArgs = mockHeatLayer.mock.calls[0] as unknown as [
       [number, number, number][],
       { radius: number; max: number },
     ]

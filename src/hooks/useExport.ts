@@ -48,7 +48,7 @@ export function useExport(mapContainerRef: RefObject<HTMLDivElement | null>): Us
       const ctx = canvas.getContext('2d')
       if (ctx !== null) {
         const label = formatDateRangeLabel(dateRange)
-        drawDateLabel(ctx, label, canvas.width, canvas.height)
+        drawDateLabel(ctx, label, canvas.height)
         drawAttribution(ctx, canvas.width, canvas.height)
       }
 

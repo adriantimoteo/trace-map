@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { act, useRef, useEffect } from 'react'
 import { render, screen } from '../test/utils'
+import { render as renderUnwrapped } from '@testing-library/react'
 import { useFilterState, useFilterDispatch } from './FilterContext'
 import type { MapBounds } from '../types'
 
@@ -137,7 +138,7 @@ describe('FilterContext', () => {
   it('throws a descriptive error when used outside FilterProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<Consumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<Consumer />)).toThrow(
       'useFilterState must be used within a FilterProvider',
     )
 
@@ -147,7 +148,7 @@ describe('FilterContext', () => {
   it('useFilterDispatch throws a descriptive error when used outside FilterProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<DispatchConsumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<DispatchConsumer />)).toThrow(
       'useFilterDispatch must be used within a FilterProvider',
     )
 

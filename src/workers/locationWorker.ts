@@ -202,12 +202,10 @@ export function runPipeline(
         return // skip malformed points
       }
 
-      const lat =
-        typeof raw.latitudeE7 === 'number' ? raw.latitudeE7 / 1e7 : (raw.latitudeE7 as number) / 1e7
-      const lng =
-        typeof raw.longitudeE7 === 'number'
-          ? raw.longitudeE7 / 1e7
-          : (raw.longitudeE7 as number) / 1e7
+      // Number() coerces safely regardless of the runtime shape of untrusted JSON input;
+      // a non-numeric value becomes NaN and is caught by the isNaN check below.
+      const lat = Number(raw.latitudeE7) / 1e7
+      const lng = Number(raw.longitudeE7) / 1e7
 
       if (isNaN(lat) || isNaN(lng)) return
 

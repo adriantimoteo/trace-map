@@ -107,24 +107,24 @@ describe('drawDateLabel', () => {
   })
 
   it('calls fillRect to draw the background box', () => {
-    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, 'Jan 2020 – Dec 2022', 800, 600)
+    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, 'Jan 2020 – Dec 2022', 600)
     expect(ctx.fillRect).toHaveBeenCalledOnce()
   })
 
   it('calls fillText with the provided label text', () => {
     const text = 'Jan 2020 – Dec 2022'
-    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, text, 800, 600)
+    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, text, 600)
     expect(ctx.fillText).toHaveBeenCalledWith(text, expect.any(Number), expect.any(Number))
   })
 
   it('calls save and restore to isolate context state', () => {
-    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, 'All time', 800, 600)
+    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, 'All time', 600)
     expect(ctx.save).toHaveBeenCalledOnce()
     expect(ctx.restore).toHaveBeenCalledOnce()
   })
 
   it('positions the box near the bottom-left', () => {
-    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, 'All time', 800, 600)
+    drawDateLabel(ctx as unknown as CanvasRenderingContext2D, 'All time', 600)
     const [x, y] = ctx.fillRect.mock.calls[0] as number[]
     // x should be a small positive margin from left edge
     expect(x).toBeGreaterThan(0)

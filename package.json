@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "generate-data": "ts-node --project tsconfig.scripts.json scripts/generate-data.ts",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc -b --noEmit",
     "format:check": "prettier --check src",
     "format": "prettier --write src",
     "audit:deps": "node scripts/audit-deps.js"

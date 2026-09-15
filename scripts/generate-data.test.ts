@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * Unit tests for scripts/generate-data.ts pure functions.
  *

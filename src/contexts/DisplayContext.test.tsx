@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { act, useRef, useEffect } from 'react'
 import { render, screen } from '../test/utils'
+import { render as renderUnwrapped } from '@testing-library/react'
 import { useDisplayState, useDisplayDispatch } from './DisplayContext'
 
 // ---------------------------------------------------------------------------
@@ -79,7 +80,7 @@ describe('DisplayContext', () => {
   it('throws a descriptive error when used outside DisplayProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<Consumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<Consumer />)).toThrow(
       'useDisplayState must be used within a DisplayProvider',
     )
 
@@ -89,7 +90,7 @@ describe('DisplayContext', () => {
   it('useDisplayDispatch throws a descriptive error when used outside DisplayProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<DispatchConsumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<DispatchConsumer />)).toThrow(
       'useDisplayDispatch must be used within a DisplayProvider',
     )
 

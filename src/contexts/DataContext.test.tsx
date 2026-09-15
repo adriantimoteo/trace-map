@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { act, useRef, useEffect } from 'react'
 import { render, screen } from '../test/utils'
+import { render as renderUnwrapped } from '@testing-library/react'
 import { useDataState, useDataDispatch } from './DataContext'
 import type { LocationPoint } from '../types'
 
@@ -160,7 +161,7 @@ describe('DataContext', () => {
   it('throws a descriptive error when used outside DataProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<Consumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<Consumer />)).toThrow(
       'useDataState must be used within a DataProvider',
     )
 
@@ -170,7 +171,7 @@ describe('DataContext', () => {
   it('useDataDispatch throws a descriptive error when used outside DataProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    expect(() => render(<DispatchConsumer />, { wrapper: undefined })).toThrow(
+    expect(() => renderUnwrapped(<DispatchConsumer />)).toThrow(
       'useDataDispatch must be used within a DataProvider',
     )
 
