@@ -36,7 +36,7 @@ Then open the printed local URL and drop in a `Records.json` or `Timeline.json` 
 Google has changed how Timeline (formerly "Location History") is exported more than once, so which path applies depends on your account and device:
 
 - **Via Google Takeout** (older accounts, or Timeline still backed up to your Google Account): go to [takeout.google.com](https://takeout.google.com/), click **Deselect all**, then select **Location History (Timeline)**, and export. Your download contains a `Records.json` file.
-- **Via the Google Maps app** (Timeline stored on-device, the current default for most Android users): open the Google Maps app → your profile picture → **Your Timeline** → **⋮** menu → **Location and privacy settings** → **Export Timeline data**. This produces a `Timeline.json` file.
+- **Via the Settings app** (Timeline stored on-device, the current default for most Android users): open the **Settings** app → **Location** → **Location services** → **Timeline** → **Export Timeline data** → **Continue** → choose a storage location → **Save**. This produces a `Timeline.json` file.
 
 See Google's [Timeline export/delete help article](https://support.google.com/maps/answer/14169818) if the exact menu differs from the above — Google updates this UI periodically.
 

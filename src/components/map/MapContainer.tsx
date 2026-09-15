@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { MapContainer as LeafletMapContainer, TileLayer, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { HeatmapLayer } from './HeatmapLayer'
-import { ViewportFilterOverlay } from './ViewportFilterOverlay'
 import { ParseProgressOverlay } from './ParseProgressOverlay'
 import { NoPointsOverlay } from './NoPointsOverlay'
 import { useDataState } from '../../contexts/DataContext'
@@ -72,7 +71,6 @@ export function MapContainer() {
         />
         <MapInner />
       </LeafletMapContainer>
-      <ViewportFilterOverlay />
       <ParseProgressOverlay />
       <NoPointsOverlay />
     </div>

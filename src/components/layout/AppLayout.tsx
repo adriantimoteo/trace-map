@@ -5,7 +5,7 @@ import { MapContainer } from '../map/MapContainer'
 import { useExport } from '../../hooks/useExport'
 import { useLocationWorker } from '../../hooks/useLocationWorker'
 import { useFilterDispatch } from '../../contexts/FilterContext'
-import { useUIDispatch } from '../../contexts/UIContext'
+import { useUIDispatch, useUIState } from '../../contexts/UIContext'
 
 export function AppLayout() {
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -13,6 +13,7 @@ export function AppLayout() {
   const { loadFile } = useLocationWorker()
   const filterDispatch = useFilterDispatch()
   const uiDispatch = useUIDispatch()
+  const { sidebarCollapsed } = useUIState()
   const [isDraggingOver, setIsDraggingOver] = useState(false)
 
   function handleNewFile(file: File) {
@@ -68,10 +69,19 @@ export function AppLayout() {
         onExport={() => void exportMap()}
         isExporting={isExporting}
         onLoadNewFile={handleNewFile}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={() => {
+          uiDispatch({ type: 'TOGGLE_SIDEBAR' })
+        }}
       />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 shrink-0 overflow-y-auto bg-gray-800">
-          <FilterPanel />
+        <aside
+          className={[
+            'shrink-0 overflow-y-auto overflow-x-hidden bg-gray-800 transition-[width] duration-200',
+            sidebarCollapsed ? 'w-0' : 'w-64',
+          ].join(' ')}
+        >
+          {!sidebarCollapsed && <FilterPanel />}
         </aside>
         <main className="flex-1">
           <div ref={mapContainerRef} className="h-full w-full">

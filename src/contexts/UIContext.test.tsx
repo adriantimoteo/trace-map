@@ -24,6 +24,11 @@ function FileFormatConsumer() {
   return <div data-testid="file-format">{state.fileFormat}</div>
 }
 
+function SidebarCollapsedConsumer() {
+  const state = useUIState()
+  return <div data-testid="sidebar-collapsed">{String(state.sidebarCollapsed)}</div>
+}
+
 function UIDispatchCapture({
   onDispatch,
 }: {
@@ -288,5 +293,37 @@ describe('uiReducer — DISMISS_SAMPLING_NOTICE', () => {
     })
 
     expect(screen.getByTestId('dismissed').textContent).toBe('true')
+  })
+})
+
+describe('uiReducer — TOGGLE_SIDEBAR', () => {
+  it('defaults sidebarCollapsed to false', () => {
+    render(<SidebarCollapsedConsumer />)
+    expect(screen.getByTestId('sidebar-collapsed').textContent).toBe('false')
+  })
+
+  it('toggles sidebarCollapsed to true, then back to false', () => {
+    let dispatch!: ReturnType<typeof useUIDispatch>
+
+    render(
+      <>
+        <UIDispatchCapture
+          onDispatch={(d) => {
+            dispatch = d
+          }}
+        />
+        <SidebarCollapsedConsumer />
+      </>,
+    )
+
+    act(() => {
+      dispatch({ type: 'TOGGLE_SIDEBAR' })
+    })
+    expect(screen.getByTestId('sidebar-collapsed').textContent).toBe('true')
+
+    act(() => {
+      dispatch({ type: 'TOGGLE_SIDEBAR' })
+    })
+    expect(screen.getByTestId('sidebar-collapsed').textContent).toBe('false')
   })
 })

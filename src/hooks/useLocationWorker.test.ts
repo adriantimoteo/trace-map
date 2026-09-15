@@ -104,6 +104,7 @@ beforeEach(() => {
     advancedOptionsOpen: false,
     samplingNoticeDismissed: false,
     fileFormat: 'auto',
+    sidebarCollapsed: false,
   })
 
   vi.stubGlobal('Worker', MockWorker)
@@ -218,6 +219,7 @@ describe('useLocationWorker', () => {
         advancedOptionsOpen: false,
         samplingNoticeDismissed: false,
         fileFormat: 'auto',
+        sidebarCollapsed: false,
       })
       const { result } = renderHook(() => useLocationWorker())
 
@@ -245,6 +247,7 @@ describe('useLocationWorker', () => {
         advancedOptionsOpen: false,
         samplingNoticeDismissed: false,
         fileFormat: 'records',
+        sidebarCollapsed: false,
       })
       const { result } = renderHook(() => useLocationWorker())
 
@@ -272,6 +275,7 @@ describe('useLocationWorker', () => {
         advancedOptionsOpen: false,
         samplingNoticeDismissed: false,
         fileFormat: 'semantic',
+        sidebarCollapsed: false,
       })
       const { result } = renderHook(() => useLocationWorker())
 

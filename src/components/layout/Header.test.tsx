@@ -3,7 +3,15 @@ import { render, screen, fireEvent } from '../../test/utils'
 import { Header } from './Header'
 
 function renderHeader(onLoadNewFile = vi.fn()) {
-  return render(<Header onExport={vi.fn()} isExporting={false} onLoadNewFile={onLoadNewFile} />)
+  return render(
+    <Header
+      onExport={vi.fn()}
+      isExporting={false}
+      onLoadNewFile={onLoadNewFile}
+      sidebarCollapsed={false}
+      onToggleSidebar={vi.fn()}
+    />,
+  )
 }
 
 describe('Header', () => {
@@ -41,6 +49,43 @@ describe('Header', () => {
     fireEvent.click(button)
     // Still on the page — no navigation happened
     expect(screen.getByText('TraceMap')).toBeInTheDocument()
+  })
+
+  it('renders a "Collapse sidebar" toggle button when expanded', () => {
+    renderHeader()
+    const button = screen.getByRole('button', { name: /collapse sidebar/i })
+    expect(button).toBeInTheDocument()
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('renders an "Expand sidebar" toggle button when collapsed', () => {
+    render(
+      <Header
+        onExport={vi.fn()}
+        isExporting={false}
+        onLoadNewFile={vi.fn()}
+        sidebarCollapsed={true}
+        onToggleSidebar={vi.fn()}
+      />,
+    )
+    const button = screen.getByRole('button', { name: /expand sidebar/i })
+    expect(button).toBeInTheDocument()
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('calls onToggleSidebar when the sidebar toggle button is clicked', () => {
+    const onToggleSidebar = vi.fn()
+    render(
+      <Header
+        onExport={vi.fn()}
+        isExporting={false}
+        onLoadNewFile={vi.fn()}
+        sidebarCollapsed={false}
+        onToggleSidebar={onToggleSidebar}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }))
+    expect(onToggleSidebar).toHaveBeenCalledTimes(1)
   })
 
   it('calls onLoadNewFile with the selected file when a file is chosen', () => {

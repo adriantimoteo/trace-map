@@ -6,6 +6,7 @@ interface UIState {
   advancedOptionsOpen: boolean
   samplingNoticeDismissed: boolean
   fileFormat: 'auto' | 'records' | 'semantic'
+  sidebarCollapsed: boolean
 }
 
 // 2. Action union type
@@ -15,6 +16,7 @@ type UIAction =
   | { type: 'DISMISS_SAMPLING_NOTICE' }
   | { type: 'SET_FILE_FORMAT'; payload: 'auto' | 'records' | 'semantic' }
   | { type: 'RESET_FOR_NEW_FILE' }
+  | { type: 'TOGGLE_SIDEBAR' }
 
 // 3. Initial state
 const initialState: UIState = {
@@ -22,6 +24,7 @@ const initialState: UIState = {
   advancedOptionsOpen: false,
   samplingNoticeDismissed: false,
   fileFormat: 'auto',
+  sidebarCollapsed: false,
 }
 
 // 4. Reducer
@@ -37,6 +40,8 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return { ...state, fileFormat: action.payload }
     case 'RESET_FOR_NEW_FILE':
       return { ...state, samplingNoticeDismissed: false }
+    case 'TOGGLE_SIDEBAR':
+      return { ...state, sidebarCollapsed: !state.sidebarCollapsed }
     default:
       return state
   }

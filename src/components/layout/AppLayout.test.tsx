@@ -129,6 +129,33 @@ describe('AppLayout — drag-and-drop re-upload', () => {
   })
 })
 
+describe('AppLayout — sidebar collapse', () => {
+  it('shows the FilterPanel and a collapse button by default', () => {
+    render(<AppLayout />)
+    expect(screen.getByText('Filters')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /collapse sidebar/i })).toBeInTheDocument()
+  })
+
+  it('hides the FilterPanel and swaps to an expand button when toggled', () => {
+    render(<AppLayout />)
+
+    fireEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }))
+
+    expect(screen.queryByText('Filters')).toBeNull()
+    expect(screen.getByRole('button', { name: /expand sidebar/i })).toBeInTheDocument()
+  })
+
+  it('shows the FilterPanel again when toggled a second time', () => {
+    render(<AppLayout />)
+
+    fireEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /expand sidebar/i }))
+
+    expect(screen.getByText('Filters')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /collapse sidebar/i })).toBeInTheDocument()
+  })
+})
+
 describe('AppLayout — non-JSON drop shows error', () => {
   beforeEach(() => {
     mockLoadFile.mockReset()
