@@ -157,15 +157,18 @@ describe('HeatmapLayer', () => {
 
     expect(mockHeatLayer).toHaveBeenCalledOnce()
     // Two points in separate grid cells → maxDensity = 1
-    // Default intensity = 0.5 → effectiveMax = 1 * (1.0 - 0.5 * 0.9) = 0.55
+    // Default intensity = 0.5 → effectiveMax = 10^-0.5 ≈ 0.31623
     // Default radius = 20
-    expect(mockHeatLayer).toHaveBeenCalledWith(
-      [
-        [51.5, -0.1, 1],
-        [48.8, 2.3, 1],
-      ],
-      { radius: 20, max: 0.55 },
-    )
+    const callArgs = mockHeatLayer.mock.calls[0] as [
+      [number, number, number][],
+      { radius: number; max: number },
+    ]
+    expect(callArgs[0]).toEqual([
+      [51.5, -0.1, 1],
+      [48.8, 2.3, 1],
+    ])
+    expect(callArgs[1].radius).toBe(20)
+    expect(callArgs[1].max).toBeCloseTo(10 ** -0.5, 10)
     expect(mockAddTo).toHaveBeenCalledWith(mockMap)
   })
 
@@ -214,7 +217,7 @@ describe('HeatmapLayer', () => {
   // effectiveMax formula tests
   // ---------------------------------------------------------------------------
 
-  it('effectiveMax: intensity=1.0 + maxDensity=100 → effectiveMax=10', () => {
+  it('effectiveMax: intensity=1.0 (standard path) → effectiveMax=0.1', () => {
     render(
       <>
         <DispatchCapture />
@@ -251,11 +254,13 @@ describe('HeatmapLayer', () => {
       [number, number, number][],
       { radius: number; max: number },
     ]
-    // effectiveMax = 100 * (1.0 - 1.0 * 0.9) = 100 * 0.1 = 10
-    expect(callArgs[1].max).toBeCloseTo(10, 10)
+    // Standard path: effectiveMax is intensityFactor only (weights are already
+    // normalised to maxDensity), so it does not scale with maxDensity.
+    // effectiveMax = 10^-1.0 = 0.1
+    expect(callArgs[1].max).toBeCloseTo(0.1, 10)
   })
 
-  it('effectiveMax: intensity=0.0 + maxDensity=100 → effectiveMax=100', () => {
+  it('effectiveMax: intensity=0.0 (standard path) → effectiveMax=1.0', () => {
     render(
       <>
         <DispatchCapture />
@@ -292,11 +297,11 @@ describe('HeatmapLayer', () => {
       [number, number, number][],
       { radius: number; max: number },
     ]
-    // effectiveMax = 100 * (1.0 - 0.0 * 0.9) = 100 * 1.0 = 100
-    expect(callArgs[1].max).toBe(100)
+    // effectiveMax = 10^-0.0 = 1.0
+    expect(callArgs[1].max).toBe(1.0)
   })
 
-  it('effectiveMax: intensity=0.5 + maxDensity=100 → effectiveMax=55', () => {
+  it('effectiveMax: intensity=0.5 (standard path) → effectiveMax=10^-0.5', () => {
     render(
       <>
         <DispatchCapture />
@@ -330,8 +335,8 @@ describe('HeatmapLayer', () => {
       [number, number, number][],
       { radius: number; max: number },
     ]
-    // effectiveMax = 100 * (1.0 - 0.5 * 0.9) = 100 * 0.55 = 55
-    expect(callArgs[1].max).toBeCloseTo(55, 10)
+    // effectiveMax = 10^-0.5 ≈ 0.31623
+    expect(callArgs[1].max).toBeCloseTo(10 ** -0.5, 10)
   })
 
   it('radius option updates when SET_RADIUS is dispatched via DisplayContext', () => {
